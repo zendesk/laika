@@ -1,0 +1,105 @@
+{
+  "name": "apollo-testing-toolkit-link",
+  "version": "0.0.0-development",
+  "description": "Test, mock, intercept and modify Apollo Client's operations",
+  "keywords": [
+    "apollo",
+    "apollo-client",
+    "graphql",
+    "mock",
+    "testing",
+    "test",
+    "apollo-link",
+    "link"
+  ],
+  "bugs": {
+    "url": "https://github.com/zendesk/apollo-testing-toolkit-link/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zendesk/apollo-testing-toolkit-link.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Zendesk <pingu-npm@zendesk.com>",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./esm/main.js",
+      "require": "./cjs/main.js"
+    },
+    "./*": {
+      "import": "./esm/*.js",
+      "require": "./cjs/*.js"
+    },
+    "./cjs": {
+      "require": "./cjs/main.js"
+    },
+    "./cjs/*": {
+      "require": "./cjs/*.js"
+    },
+    "./esm/*": {
+      "import": "./esm/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "cjs/main.js",
+  "module": "esm/main.js",
+  "source": "src/main.ts",
+  "scripts": {
+    "build": "yarn build:cjs && yarn build:esm",
+    "build:cjs": "yarn rrun tsc --outDir cjs --module commonjs --target es2015",
+    "build:esm": "yarn rrun tsc --outDir esm --module esnext --target es2015",
+    "clean": "git clean -dfX --exclude=node_modules src && beemo typescript:sync-project-refs",
+    "format": "yarn rrun prettier --write \"./{src,tests}/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "postinstallDev": "yarn prepare",
+    "prepare": "rrun husky install .config/husky && beemo create-config",
+    "release": "beemo run-script release",
+    "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:code",
+    "test:code": "beemo jest",
+    "test:format": "yarn rrun prettier --check \"./{src,tests}/**/!(*.d).{.js,jsx,ts,tsx,json,md}\"",
+    "test:lint": "rrun eslint 'src/**'",
+    "test:types": "yarn rrun tsc --noEmit"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.2.5",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@niieani/scaffold": "^1.3.4",
+    "@types/jest": "^27.0.2",
+    "@types/lodash": "^4.14.175",
+    "graphql": "^15.6.1",
+    "graphql-tag": "^2.12.5",
+    "react": "^17.0.2",
+    "wait-for-observables": "^1.0.3"
+  },
+  "peerDependencies": {
+    "@apollo/client": ">=3.2.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "collaborators": [
+    "Bazyli Brzóska <bbrzoska@zendesk.com>"
+  ],
+  "release": {
+    "tagFormat": "${version}",
+    "branches": [
+      "+([0-9])?(.{+([0-9]),x}).x",
+      "master",
+      {
+        "name": "main",
+        "channel": false
+      },
+      "next",
+      {
+        "name": "beta",
+        "prerelease": true
+      },
+      {
+        "name": "alpha",
+        "prerelease": true
+      }
+    ]
+  }
+}

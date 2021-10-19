@@ -1,0 +1,1 @@
+The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.

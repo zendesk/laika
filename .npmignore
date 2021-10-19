@@ -1,0 +1,10 @@
+.github/
+.vscode/
+coverage/
+patches/
+docs/
+docs-meta/
+docs/
+media/
+release.config.js
+.eslintrc.js
