@@ -8,3 +8,8 @@ docs/
 media/
 release.config.js
 .eslintrc.js
+.yarn
+.config
+.github
+.prettierignore
+.yarnrc.yml
