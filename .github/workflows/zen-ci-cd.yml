@@ -9,7 +9,8 @@ on:
 jobs:
   publish-docs:
     name: Publish documentation
-    runs-on: [self-hosted, zendesk-stable]
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     steps:
       - uses: zendesk/checkout@v2
