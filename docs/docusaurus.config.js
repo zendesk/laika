@@ -9,8 +9,8 @@ const { theme, source, outline, markedOptions, ...typedocConfig } =
 module.exports = {
   title: 'apollo-testing-toolkit-link',
   tagline: require('../package.json').description,
-  url: 'https://refactored-succotash-231cd326.pages.github.io',
-  baseUrl: '/',
+  url: 'https://zendesk.github.io',
+  baseUrl: '/apollo-testing-toolkit-link/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
