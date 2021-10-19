@@ -1,20 +1,16 @@
-name: Zendesk Continuous Integration
+name: Publish Documentation
 
 on:
   push:
     branches:
       - master
       - main
-      - next
-  pull_request:
-    branches:
-      - '**'
 
 jobs:
   publish-docs:
     name: Publish documentation
     runs-on: [self-hosted, zendesk-stable]
-    if: github.actor != 'github-actions[bot]' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     steps:
       - uses: zendesk/checkout@v2
       - uses: zendesk/setup-node@v2

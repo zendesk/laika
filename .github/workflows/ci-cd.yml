@@ -1,0 +1,95 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - next
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    name: Test
+    runs-on: [self-hosted, zendesk-stable]
+    steps:
+      - uses: zendesk/checkout@v2
+      - uses: zendesk/setup-node@v2
+        with:
+          node-version: 16
+      - id: find-yarn-cache-folder
+        name: Find Yarn's cache folder
+        run: echo "::set-output name=path::$(yarn config get cacheFolder)"
+      - name: Cache Yarn's cache folder
+        uses: zendesk/cache@v2.1.6
+        with:
+          path: ${{ steps.find-yarn-cache-folder.outputs.path }}
+          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-os-${{ runner.os }}-
+      - name: Install dependencies and test
+        run: |
+          yarn install --immutable
+          yarn build
+          yarn test --coverage
+      - name: SonarQube Scan
+        if: github.event_name == 'pull_request'
+        run: |
+          sonar-scanner \
+          -Dsonar.host.url="${{ secrets.SONARQUBE_HOST }}" \
+          -Dsonar.login="${{ secrets.SONARQUBE_TOKEN }}" \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Dsonar.pullrequest.branch="${{ github.head_ref }}" \
+          -Dsonar.pullrequest.base="${{ github.base_ref }}" \
+          -Dsonar.pullrequest.key="${{ github.event.number }}" \
+          -Dsonar.pullrequest.github.repository="zendesk/${{ github.event.repository.name }}" \
+          -Dsonar.scm.revision="${{ github.event.pull_request.head.sha }}"
+      - name: SonarQube Scan (main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          sonar-scanner \
+          -Dsonar.host.url="${{ secrets.SONARQUBE_HOST }}" \
+          -Dsonar.login="${{ secrets.SONARQUBE_TOKEN }}" \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Dsonar.branch.name=main
+      - name: SonarQube Scan (next)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/next'
+        run: |
+          sonar-scanner \
+          -Dsonar.host.url="${{ secrets.SONARQUBE_HOST }}" \
+          -Dsonar.login="${{ secrets.SONARQUBE_TOKEN }}" \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Dsonar.branch.name=next
+
+  publish:
+    name: Publish package to NPM
+    needs: test
+    runs-on: [self-hosted, zendesk-stable]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
+    steps:
+      - uses: zendesk/checkout@v2
+      - uses: zendesk/setup-node@v2
+        with:
+          node-version: 16
+      - id: find-yarn-cache-folder
+        name: Find Yarn's cache folder
+        run: echo "::set-output name=path::$(yarn config get cacheFolder)"
+      - name: Cache Yarn's cache folder
+        uses: zendesk/cache@v2.1.6
+        with:
+          path: ${{ steps.find-yarn-cache-folder.outputs.path }}
+          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-os-${{ runner.os }}-
+      - name: Build and release
+        run: |
+          yarn install --immutable
+          yarn build
+          yarn release
+        env:
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
