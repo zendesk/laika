@@ -60,8 +60,8 @@ function Home() {
   const { siteConfig = {} } = context
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Test, mock, intercept and modify Apollo Client's operations"
+      title={`The only Apollo Client mocking tool you need — ${siteConfig.title}`}
+      description="Test, mock, intercept and modify Apollo Client's operations — in both browser and unit tests!"
     >
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">

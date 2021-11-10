@@ -1,6 +1,8 @@
 ![Laika logo](./media/logo-laika-bg.png)
 
-Test, mock, intercept and modify Apollo Client's operations.
+[![Try Laika on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/laika-example-3yyq0?fontsize=14&hidenavigation=1&theme=dark)
+
+Test, mock, intercept and modify Apollo Client's operations — in both browser and unit tests!
 
 ![Example recording output](./media/example-recording.png)
 
