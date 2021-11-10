@@ -1,28 +1,27 @@
 /* eslint-disable @typescript-eslint/member-ordering,@typescript-eslint/no-shadow,max-classes-per-file */
 /**
- * Testing Toolkit's {@link TestingToolkitInterceptionManager | `InterceptionManager`}
- * is the place where most of the magic happens.
- * All the operations are routed through it, and the Manager can decide what happens to them along the way.
+ * {@link Laika | `Laika`} is the place where most of the magic happens.
+ * All the operations are routed through its Apollo Link, and Laika can decide what happens to them along the way.
  * By default every connection is passed through and no additional action is taken.
  *
- * By default, an instance of the Manager is installed as `apolloTestingToolkit` property
- * on the global object (most likely `window`), accessible as `window.apolloTestingToolkit`
- * or simply as `apolloTestingToolkit`.
+ * If you're using createGlobalLaikaLink, an instance of Laika is by default installed as `laika` property
+ * on the global object (most likely `window`), accessible as `window.laika`
+ * or simply as `laika`.
  *
  * Key functionality:
  *
- * - {@link TestingToolkitInterceptionManager.intercept | `apolloTestingToolkit.intercept()`}:
+ * - {@link Laika.intercept | `laika.intercept()`}:
  *
- *   If you use `jest`, you can think of the toolkit like the `jest` global,
- *   where the equivalent of `jest.fn()` is {@link TestingToolkitInterceptionManager.intercept | `apolloTestingToolkit.intercept()`}
- * - {@link ApolloTestingToolkit.LogApi | `apolloTestingToolkit.log`}
+ *   If you use `jest`, you can think of laika like the `jest` global,
+ *   where the equivalent of `jest.fn()` is {@link Laika.intercept | `laika.intercept()`}
+ * - {@link Laika.LogApi | `laika.log`}
  *
- *   The other thing the manager is responsible for is logging.
+ *   The other thing laika is responsible for is logging.
  *
- *   Logging functionality is behind a separate API available under {@link ApolloTestingToolkit.LogApi | `apolloTestingToolkit.log`}.
+ *   Logging functionality is behind a separate API available under {@link Laika.LogApi | `laika.log`}.
  *
  * @packageDocumentation
- * @module ApolloTestingToolkit
+ * @module Laika
  */
 /* eslint-disable no-console */
 
@@ -70,20 +69,20 @@ const ONE_SECOND_IN_MS = 1000
 
 /**
  * Class responsible for managing interceptions.
- * By default a singleton is installed on `globalThis` (usually `window`) under `apolloTestingToolkit`.
+ * By default a singleton is installed on `globalThis` (usually `window`) under `laika`.
  *
- * Read more in the {@link ApolloTestingToolkit | module page} or scroll down to see it's functionality.
+ * Read more in the {@link Laika | module page} or scroll down to see it's functionality.
  *
  * @example
  * ```js
- * window.apolloTestingToolkit.log.startLogging();
+ * laika.log.startLogging();
  * ```
  */
-export class TestingToolkitInterceptionManager {
+export class Laika {
   private readonly referenceName: string
 
   constructor({
-    referenceName = 'interceptionManager',
+    referenceName = 'laika',
   }: {
     referenceName?: string
   } = {}) {
@@ -109,7 +108,7 @@ export class TestingToolkitInterceptionManager {
    * @param keepNonSubscriptionConnectionsOpen If true, queries and mutations will behave a little like subscriptions, in that you will be able to fire updates even after the initial response. Experimental.
    * @example
    * ```js
-   * const getActiveUsersInterceptor = apolloTestingToolkit.intercept({
+   * const getActiveUsersInterceptor = laika.intercept({
    *   clientName: 'users',
    *   operationName: 'getActiveUsers',
    * });
@@ -420,11 +419,11 @@ export class TestingToolkitInterceptionManager {
   /**
    * A set of functions that controls logging and recording of all (or selected) operations.
    *
-   * Read more on the {@link ApolloTestingToolkit.LogApi | LogApi} page.
+   * Read more on the {@link Laika.LogApi | LogApi} page.
    *
    * @example
    * ```js
-   * window.apolloTestingToolkit.log.startLogging();
+   * laika.log.startLogging();
    * ```
    */
   log: LogApi = {
@@ -482,16 +481,14 @@ export class TestingToolkitInterceptionManager {
   }
 
   /**
-   * Use this function to create an Apollo Link that uses this InterceptionManager instance.
+   * Use this function to create an Apollo Link that uses this Laika instance.
    * Useful in unit tests.
    * @param onRequest
    */
   createLink(onRequest?: (operation: Operation, forward: NextLink) => void) {
     return new ApolloLink((operation, forward) => {
       if (!forward) {
-        throw new Error(
-          'ApolloTestingToolkitLink cannot be used as a terminating link!',
-        )
+        throw new Error('LaikaLink cannot be used as a terminating link!')
       }
       onRequest?.(operation, forward)
       return this.interceptor(operation, forward)
@@ -748,7 +745,7 @@ export declare abstract class LogApi {
    * If you did not provide a matcher, it will log everything.
    * You will see queries, mutations, and subscription pushes along with their data.
    *
-   * ![Example logging output](api/media/example-logging.png)
+   * ![Example logging output](media://example-logging.png)
    */
   startLogging(matcher?: Matcher | undefined): void
   /**
@@ -758,7 +755,7 @@ export declare abstract class LogApi {
   /**
    * Starts the recording process. Every result will be saved until you run `log.stopRecording()`.
    *
-   * ![Example recording output](api/media/example-recording.png)
+   * ![Example recording output](media://example-recording.png)
    *
    * @param startingActionName Name what you are about to do. For example "opening a new ticket".
    * @param matcher A matcher object or function to record only the events that you are interested in, for example `{operationName: 'getColors', clientName: 'backend1'}` will record only `'getColors'` operations.
@@ -802,7 +799,7 @@ export declare abstract class LogApi {
 }
 
 /**
- * This is the mocking API that is returned after running {@link TestingToolkitInterceptionManager.intercept | `intercept()`} on the {@link TestingToolkitInterceptionManager | InterceptionManager}.
+ * This is the mocking API that is returned after running {@link Laika.intercept | `intercept()`} on the {@link Laika | Laika}.
  *
  * The API is chainable, with the exception of `mockRestore()`.
  *
@@ -828,7 +825,7 @@ export declare abstract class InterceptApi {
    * @example
    * Always respond with the mock to all queries/mutations intercepted
    * ```js
-   * const intercept = apolloTestingToolkit.intercept({operationName: 'getUsers'});
+   * const intercept = laika.intercept({operationName: 'getUsers'});
    * intercept.mockResult(
    *   {result: {data: {users: [{id: 1, name: 'Mouse'}, {id: 2, name: 'Bamboo'}]}}},
    * );
@@ -836,7 +833,7 @@ export declare abstract class InterceptApi {
    * @example
    * Respond with an error, but only when the operations's variables contain `{userGroup: 'elephants'}`
    * ```js
-   * const intercept = apolloTestingToolkit.intercept({operationName: 'getUsers'});
+   * const intercept = laika.intercept({operationName: 'getUsers'});
    * intercept.mockResult(
    *   {error: new Error(`oops, server blew up from all the elephants stomping!`)},
    *   {variables: {userGroup: 'elephants'}}
@@ -845,7 +842,7 @@ export declare abstract class InterceptApi {
    * @example
    * Respond with a customized error based on the variables:
    * ```js
-   * const intercept = apolloTestingToolkit.intercept({operationName: 'getUsers'});
+   * const intercept = laika.intercept({operationName: 'getUsers'});
    * intercept.mockResult(
    *   ({variables}) => ({error: new Error(`oops, server blew up from all the ${variables.userGroup} stomping!`)})
    * );
@@ -869,7 +866,7 @@ export declare abstract class InterceptApi {
    * Respond with the mock to the first intercepted operation with the name `getUsers`,
    * then with a different mock the second time that operation is intercepted.
    * ```js
-   * const intercept = apolloTestingToolkit.intercept({operationName: 'getUsers'});
+   * const intercept = laika.intercept({operationName: 'getUsers'});
    * intercept
    *   .mockResultOnce(
    *     {result: {data: {users: [{id: 1, name: 'Mouse'}, {id: 2, name: 'Bamboo'}]}}},
@@ -912,7 +909,7 @@ export declare abstract class InterceptApi {
    * @example
    * Push new information to a live feed:
    * ```js
-   * const intercept = apolloTestingToolkit.intercept({operationName: 'getActiveUsersCount'});
+   * const intercept = laika.intercept({operationName: 'getActiveUsersCount'});
    * await intercept.waitForActiveSubscription();
    * intercept.fireSubscriptionUpdate(
    *   {result: {data: {count: 10}}},

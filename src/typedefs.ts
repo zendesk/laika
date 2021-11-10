@@ -119,7 +119,7 @@ export interface RecordingMarker {
 
 export type EventFilterFn = (event: RecordingElement) => boolean
 
-export interface CreateTestingToolkitLinkOptions {
+export interface CreateLaikaLinkOptions {
   clientName: string
   globalPropertyName?: string
   startLoggingImmediately?: boolean

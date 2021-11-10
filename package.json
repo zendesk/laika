@@ -1,5 +1,5 @@
 {
-  "name": "apollo-testing-toolkit-link",
+  "name": "@zendesk/laika",
   "version": "0.0.0-development",
   "description": "Test, mock, intercept and modify Apollo Client's operations",
   "keywords": [
@@ -13,11 +13,11 @@
     "link"
   ],
   "bugs": {
-    "url": "https://github.com/zendesk/apollo-testing-toolkit-link/issues"
+    "url": "https://github.com/zendesk/laika/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zendesk/apollo-testing-toolkit-link.git"
+    "url": "https://github.com/zendesk/laika.git"
   },
   "license": "Apache-2.0",
   "author": "Zendesk <pingu-npm@zendesk.com>",

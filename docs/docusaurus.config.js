@@ -7,18 +7,18 @@ const { theme, source, outline, markedOptions, ...typedocConfig } =
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'apollo-testing-toolkit-link',
+  title: 'Laika',
   tagline: require('../package.json').description,
   url: 'https://zendesk.github.io',
-  baseUrl: '/apollo-testing-toolkit-link/',
+  baseUrl: '/laika/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'zendesk', // Usually your GitHub org/user name.
-  projectName: 'apollo-testing-toolkit-link', // Usually your repo name.
+  projectName: 'Laika', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'apollo-testing-toolkit-link',
+      title: 'Laika',
       logo: {
         alt: 'GitHub',
         src: 'img/logo.svg',
@@ -31,7 +31,7 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'https://github.com/zendesk/apollo-testing-toolkit-link',
+          href: 'https://github.com/zendesk/laika',
           label: 'GitHub',
           position: 'right',
         },
@@ -50,8 +50,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl:
-            'https://github.com/zendesk/apollo-testing-toolkit-link/edit/master/docs-meta/',
+          editUrl: 'https://github.com/zendesk/laika/edit/master/docs-meta/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

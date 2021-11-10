@@ -9,7 +9,7 @@ import {
   Operation,
 } from '@apollo/client'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
-import { TestingToolkitInterceptionManager as InterceptionManager } from './interceptionManager'
+import { Laika } from './laika'
 import { onNextTick, WaitForResult } from './testUtils'
 
 const query = gql`
@@ -38,21 +38,16 @@ const subscription = gql`
 
 const standardError = new Error('I never work')
 
-const getLink = (manager: InterceptionManager) =>
-  new ApolloLink((operation, forward) =>
-    manager.interceptor(operation, forward),
-  )
-
 const data = { data: { hello: 'world' } }
 const mockData = { data: { goodbye: 'world' } }
 const mockDataImmediate = { data: { so: 'fast' } }
 
-describe('InterceptionManager', () => {
+describe('Laika', () => {
   it('returns passthrough data from the following link', async () => {
-    const manager = new InterceptionManager({
+    const laika = new Laika({
       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
     })
-    const interceptionLink = getLink(manager)
+    const interceptionLink = laika.createLink()
 
     const backendStub = jest.fn(() =>
       Observable.of(data),
@@ -67,14 +62,14 @@ describe('InterceptionManager', () => {
 
   describe('Intercept API', () => {
     it('returns mocked data and does not connect to the following link', async () => {
-      const manager = new InterceptionManager({
+      const laika = new Laika({
         referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
       })
-      const interceptionLink = getLink(manager)
+      const interceptionLink = laika.createLink()
 
       const backendStub = jest.fn(() => Observable.of(data))
       const link = ApolloLink.from([interceptionLink, backendStub as any])
-      const interceptor = manager.intercept()
+      const interceptor = laika.intercept()
       interceptor.mockResultOnce({
         result: mockData,
       })
@@ -86,14 +81,14 @@ describe('InterceptionManager', () => {
     })
 
     it('returns mock once and then falls back to the following link - twice in a row', async () => {
-      const manager = new InterceptionManager({
+      const laika = new Laika({
         referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
       })
-      const interceptionLink = getLink(manager)
+      const interceptionLink = laika.createLink()
 
       const backendStub = jest.fn(() => Observable.of(data))
       const link = ApolloLink.from([interceptionLink, backendStub as any])
-      const interceptor = manager.intercept()
+      const interceptor = laika.intercept()
 
       let triedCount = 0
       while (++triedCount <= 2) {
@@ -115,16 +110,16 @@ describe('InterceptionManager', () => {
     })
 
     it('connects to a mocked subscription without connecting to the following link and immediately fires mocked data', async () => {
-      const manager = new InterceptionManager({
+      const laika = new Laika({
         referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
       })
-      const interceptionLink = getLink(manager)
+      const interceptionLink = laika.createLink()
 
       const mockedResultFn = jest.fn(() => ({ result: mockDataImmediate }))
       const backendStub = jest.fn(() => Observable.of(data))
       const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-      const interceptor = manager.intercept()
+      const interceptor = laika.intercept()
 
       // testing that this will get pushed immediately
       interceptor.mockResultOnce(mockedResultFn)
@@ -151,15 +146,15 @@ describe('InterceptionManager', () => {
     })
 
     it('connects to a mocked subscription without connecting to the following link, then fires a mock update', async () => {
-      const manager = new InterceptionManager({
+      const laika = new Laika({
         referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
       })
-      const interceptionLink = getLink(manager)
+      const interceptionLink = laika.createLink()
 
       const backendStub = jest.fn(() => Observable.of(data))
       const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-      const interceptor = manager.intercept()
+      const interceptor = laika.intercept()
 
       const observer = {
         next: jest.fn(),
@@ -185,15 +180,15 @@ describe('InterceptionManager', () => {
     })
 
     it('waitForActiveSubscription generates a Promise when no current active subscription, which resolves once one is made', async () => {
-      const manager = new InterceptionManager({
+      const laika = new Laika({
         referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
       })
-      const interceptionLink = getLink(manager)
+      const interceptionLink = laika.createLink()
 
       const backendStub = jest.fn(() => Observable.of(data))
       const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-      const interceptor = manager.intercept()
+      const interceptor = laika.intercept()
 
       const observer = {
         next: jest.fn(),
@@ -232,14 +227,14 @@ describe('InterceptionManager', () => {
       ])(
         'correctly intercepts only operations matched by %s and leaves other alone',
         async (_, matcher) => {
-          const manager = new InterceptionManager({
+          const laika = new Laika({
             referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
           })
-          const interceptionLink = getLink(manager)
+          const interceptionLink = laika.createLink()
 
           const backendStub = jest.fn(() => Observable.of(data))
           const link = ApolloLink.from([interceptionLink, backendStub as any])
-          const interceptor = manager.intercept(matcher)
+          const interceptor = laika.intercept(matcher)
           interceptor.mockResultOnce({
             result: mockData,
           })
@@ -259,10 +254,10 @@ describe('InterceptionManager', () => {
   })
 
   it('calls unsubscribe on the appropriate downstream observable', async () => {
-    const manager = new InterceptionManager({
+    const laika = new Laika({
       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
     })
-    const interceptionLink = getLink(manager)
+    const interceptionLink = laika.createLink()
 
     const unsubscribeStub = jest.fn()
     // Hold the test hostage until we're hit
@@ -291,10 +286,10 @@ describe('InterceptionManager', () => {
   })
 
   it('supports multiple subscribers to the same request', async () => {
-    const manager = new InterceptionManager({
+    const laika = new Laika({
       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
     })
-    const interceptionLink = getLink(manager)
+    const interceptionLink = laika.createLink()
 
     const stub = jest.fn()
     stub.mockReturnValueOnce(fromError(standardError))

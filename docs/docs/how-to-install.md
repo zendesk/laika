@@ -12,14 +12,14 @@ You'll likely want to load the link conditionally, so that it is not downloaded 
 Include the link wherever you like in your chain, however I recommend putting it right before the connection with the backend occurs for most accurate results.
 
 ```js
-import { createLazyLoadableTestingToolkitLink } from 'apollo-testing-toolkit-link'
+import { createLazyLoadableLaikaLink } from '@zendesk/laika'
 
 const apolloClient = new ApolloClient({
   link: ApolloLink.from([
     new YourCustomLink(),
     ...(process.env.NODE_ENV === 'development'
       ? [
-          createLazyLoadableTestingToolkitLink({
+          createLazyLoadableLaikaLink({
             clientName: 'your-client-name',
             startLoggingImmediately: true,
           }),
@@ -38,15 +38,15 @@ By default, link is lazily loaded and if you use webpack, split into a seaprate 
 You may customize this behavior. This is the default behavior:
 
 ```js
-import { createLazyLoadableLink } from 'apollo-testing-toolkit-link'
+import { createLazyLoadableLink } from '@zendesk/laika'
 
 /**
  * @param {{clientName: string}} options
  */
-export const createLazyLoadableTestingToolkitLink = (options) =>
+export const createLazyLoadableLaikaLink = (options) =>
   createLazyLoadableLink(
     import(
-      'apollo-testing-toolkit-link' /* webpackChunkName: 'apolloTestingToolkitLink' */
+      '@zendesk/laika' /* webpackChunkName: 'apolloLaikaLink' */
     ).then(({ createInterceptingLink }) => createInterceptingLink(options)),
   )
 ```
@@ -59,4 +59,4 @@ See the [API reference](api/modules.md).
 
 ## What next?
 
-Read about how to use the library in [ApolloTestingToolkit](api/modules/ApolloTestingToolkit.md).
+Read about how to use the library in [Laika](api/modules/Laika.md).

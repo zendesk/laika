@@ -1,5 +1,5 @@
 {
-  "name": "apollo-testing-toolkit-link-docs",
+  "name": "@zendesk/laika-docs",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -13,19 +13,19 @@
     "postinstallDev": "true"
   },
   "dependencies": {
-    "@docusaurus/core": "2.0.0-beta.7",
-    "@docusaurus/preset-classic": "2.0.0-beta.7",
-    "@mdx-js/react": "^1.6.21",
+    "@docusaurus/core": "2.0.0-beta.9",
+    "@docusaurus/preset-classic": "2.0.0-beta.9",
+    "@mdx-js/react": "^1.6.22",
     "clsx": "^1.1.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@types/marked": "^3",
+    "@types/marked": "^4.0.0",
     "docusaurus-plugin-typedoc": "^0.16.3",
     "highlight.js": "^11.3.1",
-    "marked": "^3.0.7",
-    "typedoc": "^0.22.5",
+    "marked": "^4.0.0",
+    "typedoc": "^0.22.8",
     "typedoc-plugin-markdown": "^3.11.3",
     "typescript": "^4.4.4"
   },

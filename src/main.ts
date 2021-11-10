@@ -1,19 +1,15 @@
 /**
  * See: [how to install in your project](how-to-install.md)
  * @packageDocumentation
- * @module @zendesk/apollo-testing-toolkit-link
+ * @module @zendesk/laika
  */
 
-export { createLazyLoadableTestingToolkitLink } from './createLazyLoadableApolloTestingToolkitLink'
+export { createLazyLoadableLaikaLink } from './createLazyLoadableLaikaLink'
 export { createLazyLoadableLink } from './createLazyLoadableLink'
-export type {
-  InterceptApi,
-  LogApi,
-  TestingToolkitInterceptionManager,
-} from './interceptionManager'
+export type { InterceptApi, Laika, LogApi } from './laika'
 export type {
   Behavior,
-  CreateTestingToolkitLinkOptions,
+  CreateLaikaLinkOptions,
   EventFilterFn,
   FetchResult,
   FetchResultSubscriptionObserver,

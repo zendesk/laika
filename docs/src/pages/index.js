@@ -12,9 +12,8 @@ const features = [
     imageUrl: 'img/undraw_docusaurus_mountain.svg',
     description: (
       <>
-        Apollo Testing Toolkit's API is modelled on <code>jest</code>. Since
-        many Frontend Engineers are familiar with it and that should make it
-        easier to learn!
+        Laika's API is modelled on <code>jest</code>. Since many Frontend
+        Engineers are familiar with it and that should make it easier to learn!
       </>
     ),
   },
@@ -33,9 +32,8 @@ const features = [
     imageUrl: 'img/undraw_docusaurus_react.svg',
     description: (
       <>
-        Testing Toolkit lets you focus on your tests, not writing fixtures or
-        figuring out what data is being sent by the backend in a websocket
-        subscription 🙈.
+        Laika lets you focus on your tests, not writing fixtures or figuring out
+        what data is being sent by the backend in a websocket subscription 🙈.
       </>
     ),
   },
