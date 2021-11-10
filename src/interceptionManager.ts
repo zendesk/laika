@@ -86,7 +86,7 @@ export class TestingToolkitInterceptionManager {
     referenceName = 'interceptionManager',
   }: {
     referenceName?: string
-  }) {
+  } = {}) {
     this.referenceName = referenceName
   }
 
