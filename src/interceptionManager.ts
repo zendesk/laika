@@ -2,10 +2,10 @@
 /**
  * Testing Toolkit's {@link TestingToolkitInterceptionManager | `InterceptionManager`}
  * is the place where most of the magic happens.
- * All the operations are routed through the it, and the manager can decide what happens to them along the way.
+ * All the operations are routed through it, and the Manager can decide what happens to them along the way.
  * By default every connection is passed through and no additional action is taken.
  *
- * By default, an instance of the manager is installed as `apolloTestingToolkit` property
+ * By default, an instance of the Manager is installed as `apolloTestingToolkit` property
  * on the global object (most likely `window`), accessible as `window.apolloTestingToolkit`
  * or simply as `apolloTestingToolkit`.
  *
@@ -28,6 +28,7 @@
 
 import noop from 'lodash/noop'
 import {
+  ApolloLink,
   FetchResult,
   NextLink,
   Observable,
@@ -79,12 +80,14 @@ const ONE_SECOND_IN_MS = 1000
  * ```
  */
 export class TestingToolkitInterceptionManager {
-  constructor(private readonly globalPropertyName: string) {
-    if (!globalPropertyName) {
-      throw new Error(
-        `You need to provide a globalPropertyName for the apollo-testing-toolkit-link to work.`,
-      )
-    }
+  private readonly referenceName: string
+
+  constructor({
+    referenceName = 'interceptionManager',
+  }: {
+    referenceName?: string
+  }) {
+    this.referenceName = referenceName
   }
 
   /**
@@ -438,7 +441,7 @@ export class TestingToolkitInterceptionManager {
         this.log.markAction(startingActionName)
       } else {
         console.log(
-          `It is recommended to name your actions before you take them during the recording by calling: window.${this.globalPropertyName}.log.markAction('opening the ticket')`,
+          `It is recommended to name your actions before you take them during the recording by calling: ${this.referenceName}.log.markAction('opening the ticket')`,
         )
       }
     },
@@ -471,11 +474,28 @@ export class TestingToolkitInterceptionManager {
       generateCode(
         {
           recording: this.recording,
-          globalPropertyName: this.globalPropertyName,
+          referenceName: this.referenceName,
         },
         eventFilter,
         options,
       ),
+  }
+
+  /**
+   * Use this function to create an Apollo Link that uses this InterceptionManager instance.
+   * Useful in unit tests.
+   * @param onRequest
+   */
+  createLink(onRequest?: (operation: Operation, forward: NextLink) => void) {
+    return new ApolloLink((operation, forward) => {
+      if (!forward) {
+        throw new Error(
+          'ApolloTestingToolkitLink cannot be used as a terminating link!',
+        )
+      }
+      onRequest?.(operation, forward)
+      return this.interceptor(operation, forward)
+    })
   }
 
   // private APIs below
@@ -621,8 +641,8 @@ export class TestingToolkitInterceptionManager {
         subscribeTime,
         interceptMode: unsafeInterceptMode,
       } = operation.getContext()
-      const clientName = String(unsafeClientName)
-      const feature = String(unsafeFeature)
+      const clientName = unsafeClientName ? String(unsafeClientName) : 'client'
+      const feature = unsafeFeature ? String(unsafeFeature) : undefined
       const interceptMode = String(unsafeInterceptMode)
       const { operationName } = operation
 
@@ -728,7 +748,7 @@ export declare abstract class LogApi {
    * If you did not provide a matcher, it will log everything.
    * You will see queries, mutations, and subscription pushes along with their data.
    *
-   * ![Example logging output](media://example-logging.png)
+   * ![Example logging output](api/media/example-logging.png)
    */
   startLogging(matcher?: Matcher | undefined): void
   /**
@@ -738,7 +758,7 @@ export declare abstract class LogApi {
   /**
    * Starts the recording process. Every result will be saved until you run `log.stopRecording()`.
    *
-   * ![Example recording output](media://example-recording.png)
+   * ![Example recording output](api/media/example-recording.png)
    *
    * @param startingActionName Name what you are about to do. For example "opening a new ticket".
    * @param matcher A matcher object or function to record only the events that you are interested in, for example `{operationName: 'getColors', clientName: 'backend1'}` will record only `'getColors'` operations.
@@ -870,7 +890,7 @@ export declare abstract class InterceptApi {
    */
   waitForActiveSubscription(): Promise<void> | undefined
   /**
-   * Returns a Promise that will resolve either when the *next* operation is run.
+   * Returns a Promise that will resolve when the *next* operation is run.
    * This translates to whenever a query/mutation is run, or whenever the *next* subscription is made.
    */
   waitForNextSubscription(): Promise<{

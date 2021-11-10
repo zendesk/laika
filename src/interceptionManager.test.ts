@@ -49,7 +49,9 @@ const mockDataImmediate = { data: { so: 'fast' } }
 
 describe('InterceptionManager', () => {
   it('returns passthrough data from the following link', async () => {
-    const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+    const manager = new InterceptionManager({
+      referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    })
     const interceptionLink = getLink(manager)
 
     const backendStub = jest.fn(() =>
@@ -65,7 +67,9 @@ describe('InterceptionManager', () => {
 
   describe('Intercept API', () => {
     it('returns mocked data and does not connect to the following link', async () => {
-      const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+      const manager = new InterceptionManager({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
       const interceptionLink = getLink(manager)
 
       const backendStub = jest.fn(() => Observable.of(data))
@@ -82,7 +86,9 @@ describe('InterceptionManager', () => {
     })
 
     it('returns mock once and then falls back to the following link - twice in a row', async () => {
-      const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+      const manager = new InterceptionManager({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
       const interceptionLink = getLink(manager)
 
       const backendStub = jest.fn(() => Observable.of(data))
@@ -109,7 +115,9 @@ describe('InterceptionManager', () => {
     })
 
     it('connects to a mocked subscription without connecting to the following link and immediately fires mocked data', async () => {
-      const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+      const manager = new InterceptionManager({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
       const interceptionLink = getLink(manager)
 
       const mockedResultFn = jest.fn(() => ({ result: mockDataImmediate }))
@@ -143,7 +151,9 @@ describe('InterceptionManager', () => {
     })
 
     it('connects to a mocked subscription without connecting to the following link, then fires a mock update', async () => {
-      const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+      const manager = new InterceptionManager({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
       const interceptionLink = getLink(manager)
 
       const backendStub = jest.fn(() => Observable.of(data))
@@ -175,7 +185,9 @@ describe('InterceptionManager', () => {
     })
 
     it('waitForActiveSubscription generates a Promise when no current active subscription, which resolves once one is made', async () => {
-      const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+      const manager = new InterceptionManager({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
       const interceptionLink = getLink(manager)
 
       const backendStub = jest.fn(() => Observable.of(data))
@@ -220,7 +232,9 @@ describe('InterceptionManager', () => {
       ])(
         'correctly intercepts only operations matched by %s and leaves other alone',
         async (_, matcher) => {
-          const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+          const manager = new InterceptionManager({
+            referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+          })
           const interceptionLink = getLink(manager)
 
           const backendStub = jest.fn(() => Observable.of(data))
@@ -245,7 +259,9 @@ describe('InterceptionManager', () => {
   })
 
   it('calls unsubscribe on the appropriate downstream observable', async () => {
-    const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+    const manager = new InterceptionManager({
+      referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    })
     const interceptionLink = getLink(manager)
 
     const unsubscribeStub = jest.fn()
@@ -275,7 +291,9 @@ describe('InterceptionManager', () => {
   })
 
   it('supports multiple subscribers to the same request', async () => {
-    const manager = new InterceptionManager(DEFAULT_GLOBAL_PROPERTY_NAME)
+    const manager = new InterceptionManager({
+      referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    })
     const interceptionLink = getLink(manager)
 
     const stub = jest.fn()
