@@ -31,11 +31,15 @@ const MAX_PHRASE_TO_VALUE_LENGTH_RATIO = 0.3
 const MAX_REFERENCED_VALUE_LENGTH = 5
 const ONE_SECOND_MS = 1000
 
+// note: This file needs a little work to make it more readable.
+// Because it's not the mission critical part of the package,
+// least time was devoted to it.
+// Please help to improve it!
 export const generateCode = (
   {
     recording: inputRecording,
-    globalPropertyName,
-  }: { recording: RecordingElement[]; globalPropertyName: string },
+    referenceName,
+  }: { recording: RecordingElement[]; referenceName: string },
   eventFilter: EventFilterFn = () => true,
   {
     /** Keys that will never be replaced with variables. By default only `['__typename']`. */
@@ -575,7 +579,7 @@ ${variables}  } = {},
       )
       const [firstEvent] = events
       return `
-const ${interceptorVariableName} = window.${globalPropertyName}.intercept({
+const ${interceptorVariableName} = ${referenceName}.intercept({
 clientName: ${JSON.stringify(firstEvent.clientName)},
 ${
   firstEvent.operationName == null
