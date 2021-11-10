@@ -3,7 +3,7 @@ import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { TestingToolkitInterceptionManager } from './interceptionManager'
 import type { CreateTestingToolkitLinkOptions } from './typedefs'
 
-const getTestingToolkitSingleton = memoize(
+export const getTestingToolkitSingleton = memoize(
   (
     globalPropertyName: string = DEFAULT_GLOBAL_PROPERTY_NAME,
     startLoggingImmediately: boolean = false,
