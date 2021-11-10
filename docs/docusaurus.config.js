@@ -15,12 +15,12 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'zendesk', // Usually your GitHub org/user name.
-  projectName: 'Laika', // Usually your repo name.
+  projectName: 'laika', // Usually your repo name.
   themeConfig: {
     navbar: {
       title: 'Laika',
       logo: {
-        alt: 'GitHub',
+        alt: 'Home',
         src: 'img/logo.svg',
       },
       items: [
