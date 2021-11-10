@@ -11,6 +11,8 @@ export const createLazyLoadableTestingToolkitLink = (
 ) =>
   createLazyLoadableLink(
     import(
-      './createTestingToolkitLink' /* webpackChunkName: 'apolloTestingToolkitLink' */
-    ).then(({ createTestingToolkitLink }) => createTestingToolkitLink(options)),
+      './createGlobalTestingToolkitLink' /* webpackChunkName: 'apolloTestingToolkitLink' */
+    ).then(({ createGlobalTestingToolkitLink }) =>
+      createGlobalTestingToolkitLink(options),
+    ),
   )

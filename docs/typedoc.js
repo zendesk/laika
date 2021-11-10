@@ -35,7 +35,7 @@ module.exports = {
   entryPoints: [
     path.resolve(__dirname, '../src/index.ts'),
     path.resolve(__dirname, '../src/interceptionManager.ts'),
-    path.resolve(__dirname, '../src/createTestingToolkitLink.ts'),
+    path.resolve(__dirname, '../src/createGlobalTestingToolkitLink.ts'),
     path.resolve(
       __dirname,
       '../src/createLazyLoadableApolloTestingToolkitLink.ts',
