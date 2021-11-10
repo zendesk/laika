@@ -1,7 +1,7 @@
 {
   "name": "@zendesk/laika",
   "version": "0.0.0-development",
-  "description": "Test, mock, intercept and modify Apollo Client's operations",
+  "description": "Test, mock, intercept and modify Apollo Client's operations — in both browser and unit tests!",
   "keywords": [
     "apollo",
     "apollo-client",
