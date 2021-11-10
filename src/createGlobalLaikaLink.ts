@@ -1,18 +1,17 @@
 import memoize from 'lodash/memoize'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
-import { TestingToolkitInterceptionManager } from './interceptionManager'
-import type { CreateTestingToolkitLinkOptions } from './typedefs'
+import { Laika } from './laika'
+import type { CreateLaikaLinkOptions } from './typedefs'
 
-export const getTestingToolkitSingleton = memoize(
+export const getLaikaSingleton = memoize(
   (
     globalPropertyName: string = DEFAULT_GLOBAL_PROPERTY_NAME,
     startLoggingImmediately: boolean = false,
   ) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access,no-multi-assign
-    const singleton = ((globalThis as any)[globalPropertyName] =
-      new TestingToolkitInterceptionManager({
-        referenceName: globalPropertyName,
-      }))
+    const singleton = ((globalThis as any)[globalPropertyName] = new Laika({
+      referenceName: globalPropertyName,
+    }))
 
     if (startLoggingImmediately) {
       singleton.log.startLogging()
@@ -25,19 +24,16 @@ export const getTestingToolkitSingleton = memoize(
  * Creates an instance of ApolloLink with intercepting functionality.
  * @param options
  */
-export function createGlobalTestingToolkitLink({
+export function createGlobalLaikaLink({
   clientName = '__unknown__',
   globalPropertyName,
   startLoggingImmediately = false,
-}: CreateTestingToolkitLinkOptions) {
+}: CreateLaikaLinkOptions) {
   if (clientName === '__unknown__') {
-    throw new Error('ApolloTestingToolkitLink: clientName is required')
+    throw new Error('LaikaLink: clientName is required')
   }
-  const interceptionManager = getTestingToolkitSingleton(
-    globalPropertyName,
-    startLoggingImmediately,
-  )
-  return interceptionManager.createLink((operation) => {
+  const laika = getLaikaSingleton(globalPropertyName, startLoggingImmediately)
+  return laika.createLink((operation) => {
     operation.setContext({ clientName })
   })
 }

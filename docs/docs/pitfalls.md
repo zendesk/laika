@@ -18,9 +18,9 @@ by the **first** interceptor that matches the constraints of the [*Matcher*](api
 To ilustrate, think about what would happen if you did this:
 
 ```ts
-const absolutelyEverythingInterceptor = apolloTestingToolkit.intercept(/* no constraints */);
+const absolutelyEverythingInterceptor = laika.intercept(/* no constraints */);
 
-const onlyActiveUsersInterceptor = apolloTestingToolkit.intercept({
+const onlyActiveUsersInterceptor = laika.intercept({
   clientName: 'users',
   operationName: 'getActiveUsers',
 });

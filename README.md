@@ -1,4 +1,4 @@
-# apollo-testing-toolkit-link
+![Laika logo](./media/logo-laika-bg.png)
 
 Test, mock, intercept and modify Apollo Client's operations.
 
@@ -10,7 +10,7 @@ Test, mock, intercept and modify Apollo Client's operations.
   - simulate error state
   - simulate loading state
   - simulate subscriptions (pushing data to the client at any given point)
-- it can work in production code without affecting the size of the bundle (the toolkit is lazily loaded)
+- it can work in production code without affecting the size of the bundle (laika is lazily loaded)
 - captures the variables that were called for a given operation for assertions
 - **log** all the data passing through from the network (or whatever Links are after this one)
 - **record** your user story
@@ -19,11 +19,11 @@ Test, mock, intercept and modify Apollo Client's operations.
 
 ## Usage
 
-- [How to install](https://zendesk.github.io/apollo-testing-toolkit-link/docs/how-to-install)
-- [Usage in Cypress](https://zendesk.github.io/apollo-testing-toolkit-link/docs/usage-in-cypress)
-- [Logging and recording](https://zendesk.github.io/apollo-testing-toolkit-link/docs/logging-and-recording)
-- [Pitfalls](https://zendesk.github.io/apollo-testing-toolkit-link/docs/pitfalls)
-- [API reference](https://zendesk.github.io/apollo-testing-toolkit-link/docs/modules/ApolloTestingToolkit)
+- [How to install](https://zendesk.github.io/laika/docs/how-to-install)
+- [Usage in Cypress](https://zendesk.github.io/laika/docs/usage-in-cypress)
+- [Logging and recording](https://zendesk.github.io/laika/docs/logging-and-recording)
+- [Pitfalls](https://zendesk.github.io/laika/docs/pitfalls)
+- [API reference](https://zendesk.github.io/laika/docs/modules/Laika)
 
 ## Alternatives
 
@@ -35,14 +35,14 @@ Thanks for your interest in our tool! Community involvement helps make our
 design system fresh and tasty for everyone.
 
 Got issues with what you find here? Please feel free to create an
-[issue](https://github.com/zendesk/apollo-testing-toolkit-link/issues/new).
+[issue](https://github.com/zendesk/laika/issues/new).
 
 If you'd like to take a crack at making some changes, please follow our
-[contributing](https://github.com/zendesk/apollo-testing-toolkit-link/blob/main/.github/CONTRIBUTING.md) documentation for details
+[contributing](https://github.com/zendesk/laika/blob/main/.github/CONTRIBUTING.md) documentation for details
 needed to submit a PR.
 
 Community behavior is benevolently ruled by a [code of
-conduct](https://github.com/zendesk/apollo-testing-toolkit-link/blob/main/.github/CODE_OF_CONDUCT.md). Please participate accordingly.
+conduct](https://github.com/zendesk/laika/blob/main/.github/CODE_OF_CONDUCT.md). Please participate accordingly.
 
 ## License
 

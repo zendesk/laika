@@ -2,7 +2,7 @@
 
 Keen to contribute? We're stoked to have you join us. You may
 find that opening an
-[issue](https://github.com/zendesk/apollo-testing-toolkit-link/issues) is the
+[issue](https://github.com/zendesk/laika/issues) is the
 best way to get a conversation started. When you're ready to submit a
 pull request, follow the [steps](#pull-request-workflow) below. We
 follow a [code of conduct](CODE_OF_CONDUCT.md) as our guide for
@@ -10,7 +10,7 @@ community behavior.
 
 ## Versioning Workflow
 
-apollo-testing-toolkit-link follows [semantic versioning](https://semver.org/). We release
+Laika follows [semantic versioning](https://semver.org/). We release
 patch versions for bugfixes, minor versions for new features, and major
 versions for any breaking changes.
 
@@ -46,8 +46,8 @@ commands are available:
 1. When your branch is ready, open a new pull request via GitHub.
 1. Every PR must pass CI checks and receive at least one :+1: to be
    considered for merge.
-1. apollo-testing-toolkit-link maintainers will manage the squashed merge to the main branch, using your PR title and description as the scope, description, and body for a conventional commit.
+1. Laika maintainers will manage the squashed merge to the main branch, using your PR title and description as the scope, description, and body for a conventional commit.
 
 ## License
 
-By contributing to apollo-testing-toolkit-link, you agree that your contributions will be licensed under the [Apache License, Version 2.0](/LICENSE.md).
+By contributing to Laika, you agree that your contributions will be licensed under the [Apache License, Version 2.0](/LICENSE.md).

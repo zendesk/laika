@@ -4,15 +4,15 @@ module.exports = {
     Home: [
       'api/index',
       'how-to-install',
-      'api/modules/ApolloTestingToolkit',
+      'api/modules/Laika',
       'usage-in-cypress',
       'logging-and-recording',
       'pitfalls',
     ],
     'Core APIs': [
-      'api/classes/ApolloTestingToolkit.TestingToolkitInterceptionManager',
-      'api/classes/ApolloTestingToolkit.InterceptApi',
-      'api/classes/ApolloTestingToolkit.LogApi',
+      'api/classes/Laika.Laika-1',
+      'api/classes/Laika.InterceptApi',
+      'api/classes/Laika.LogApi',
     ],
     'API reference': [
       {
