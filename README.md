@@ -4,6 +4,8 @@
 
 Test, mock, intercept and modify Apollo Client's operations — in both browser and unit tests!
 
+Read the Medium article about Laika: [Mock GraphQL Subscriptions with Laika — the only Apollo Client mocking tool you’ll need](https://medium.com/zendesk-engineering/mock-graphql-operations-with-laika-the-only-apollo-client-mocking-tool-youll-need-c116e1f62128)
+
 ![Example recording output](./media/example-recording.png)
 
 ## Features
