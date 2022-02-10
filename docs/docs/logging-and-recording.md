@@ -50,7 +50,7 @@ Once you're ready, stop the recording:
 
 To automatically generate fixtures, interceptors and calls in order of your activity:
 
-- Run `laika.log.generateCode()`
+- Run `laika.log.generateMockCode()`
 - Watch the magic happen! 🎩
 
 ## I want to know more!
