@@ -4,10 +4,10 @@ import type {
   NextLink,
   Observable,
   Operation,
-} from '@apollo/client'
+} from '@apollo/client/core'
 
 /** @ignore */
-export type { FetchResult, NextLink, Operation } from '@apollo/client'
+export type { FetchResult, NextLink, Operation } from '@apollo/client/core'
 /** @ignore */
 export type Variables = Operation['variables']
 /** @ignore */

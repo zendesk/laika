@@ -33,7 +33,7 @@ import {
   Observable,
   Observer,
   Operation,
-} from '@apollo/client'
+} from '@apollo/client/core'
 import type { GenerateCodeOptions } from './codeGenerator'
 import { generateCode } from './codeGenerator'
 import { LOGGING_DISABLED_MATCHER } from './constants'
