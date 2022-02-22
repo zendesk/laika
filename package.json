@@ -70,7 +70,6 @@
     "@types/lodash": "^4.14.175",
     "graphql": "^15.6.1",
     "graphql-tag": "^2.12.5",
-    "react": "^17.0.2",
     "wait-for-observables": "^1.0.3"
   },
   "peerDependencies": {
