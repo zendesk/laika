@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 import waitFor from 'wait-for-observables'
-import { ApolloLink, execute, Observable, Observer } from '@apollo/client'
+import { ApolloLink, execute, Observable, Observer } from '@apollo/client/core'
 import { createLazyLoadableLink } from './createLazyLoadableLink'
 import { onNextTick, WaitForResult } from './testUtils'
 

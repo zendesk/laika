@@ -7,7 +7,7 @@ import {
   Observable,
   Observer,
   Operation,
-} from '@apollo/client'
+} from '@apollo/client/core'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { Laika } from './laika'
 import { onNextTick, WaitForResult } from './testUtils'

@@ -1,5 +1,5 @@
 import isMatch from 'lodash/isMatch'
-import type { Operation } from '@apollo/client'
+import type { Operation } from '@apollo/client/core'
 import type {
   Matcher,
   MatcherFn,

@@ -1,5 +1,5 @@
 import type { DefinitionNode, OperationTypeNode } from 'graphql'
-import type { Operation } from '@apollo/client'
+import type { Operation } from '@apollo/client/core'
 
 const checkOperationType = (
   definitions: readonly DefinitionNode[],
