@@ -1,4 +1,4 @@
-import { ApolloLink, Observable } from '@apollo/client'
+import { ApolloLink, Observable } from '@apollo/client/core'
 
 /**
  * Creates a lazy-loadable Apollo Link.
