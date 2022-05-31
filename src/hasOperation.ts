@@ -12,12 +12,12 @@ const checkOperationType = (
 
 export const hasSubscriptionOperation = (
   /** @type {Operation} */ { query }: Operation,
-) => checkOperationType(query.definitions, 'subscription')
+) => checkOperationType(query.definitions, 'subscription' as OperationTypeNode)
 
 export const hasMutationOperation = (
   /** @type {Operation} */ { query }: Operation,
-) => checkOperationType(query.definitions, 'mutation')
+) => checkOperationType(query.definitions, 'mutation' as OperationTypeNode)
 
 export const hasQueryOperation = (
   /** @type {Operation} */ { query }: Operation,
-) => checkOperationType(query.definitions, 'query')
+) => checkOperationType(query.definitions, 'query' as OperationTypeNode)

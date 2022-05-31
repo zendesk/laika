@@ -16,7 +16,7 @@ export const indexOfWord = (
   // poor man's RegExp word boundary (we don't wanna do regexp for such large strings)
   const preceedingChar =
     referencedIndex > 0
-      ? input[referencedIndex - 1]
+      ? input[referencedIndex - 1]!
       : referencedIndex === 0
       ? _preceedingChar
       : ' '
@@ -24,7 +24,11 @@ export const indexOfWord = (
   const followingChar =
     matchEndIndex < input.length ? input[matchEndIndex] : ' '
   const nonWordChar = /\W/
-  if (nonWordChar.test(preceedingChar) && nonWordChar.test(followingChar)) {
+  if (
+    nonWordChar.test(preceedingChar) &&
+    typeof followingChar === 'string' &&
+    nonWordChar.test(followingChar)
+  ) {
     return referencedIndex + _index
   }
   // recursive tail-call loop by cutting out the front of the input string every time
@@ -54,4 +58,4 @@ export const forEachDeep = (
     : void callback({ path, value, key })
 
 export const startsWithNumber = (str: string) =>
-  !Number.isNaN(Number.parseInt(str?.[0], 10))
+  !Number.isNaN(Number.parseInt(str?.[0] ?? '', 10))

@@ -29,7 +29,7 @@ export type GenerateCodeOptions = GenerateCodeArgs[2]
 const MAX_VALUE_LENGTH = 100
 const MAX_PHRASE_TO_VALUE_LENGTH_RATIO = 0.3
 const MAX_REFERENCED_VALUE_LENGTH = 5
-const ONE_SECOND_MS = 1000
+const ONE_SECOND_MS = 1_000
 
 // note: This file needs a little work to make it more readable.
 // Because it's not the mission critical part of the package,
@@ -218,7 +218,7 @@ export const generateCode = (
             while (
               replacedVariables.has(variableName) &&
               (skipDeduplication ||
-                replacedVariables.get(variableName)?.[0].value !== value)
+                replacedVariables.get(variableName)?.[0]?.value !== value)
             ) {
               variableName = `${variableNameBase}${suffixNumber++}`
             }
@@ -420,7 +420,7 @@ export const generateCode = (
         const aka = uniq(keyValuePairs.map(({ key }) => key).filter(Boolean))
         const akaString =
           aka.length > 1 ? `    /** known as: ${aka.join(', ')} */\n` : ''
-        const { value } = keyValuePairs[0]
+        const { value } = keyValuePairs[0] ?? {}
         let stringifiedValue = JSON.stringify(value)
         const needPrintingFirst = []
         const valueIsIdLike = /^[\d_-]+$/.test(String(value))
@@ -578,6 +578,7 @@ ${variables}  } = {},
         }),
       )
       const [firstEvent] = events
+      if (!firstEvent) return ''
       return `
 const ${interceptorVariableName} = ${referenceName}.intercept({
 clientName: ${JSON.stringify(firstEvent.clientName)},

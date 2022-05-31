@@ -53,9 +53,10 @@ describe('Laika', () => {
       Observable.of(data),
     ) as unknown as ApolloLink
     const link = ApolloLink.from([interceptionLink, backendStub])
-    const [{ values }] = (await waitFor(
-      execute(link, { query }),
-    )) as WaitForResult<typeof data>
+    const [result] = (await waitFor(execute(link, { query }))) as WaitForResult<
+      typeof data
+    >
+    const { values } = result!
     expect(values).toEqual([data])
     expect(backendStub).toHaveBeenCalledTimes(1)
   })
@@ -73,9 +74,10 @@ describe('Laika', () => {
       interceptor.mockResultOnce({
         result: mockData,
       })
-      const [{ values }] = (await waitFor(
+      const [result] = (await waitFor(
         execute(link, { query }),
       )) as WaitForResult<unknown>
+      const { values } = result!
       expect(values).toEqual([mockData])
       expect(backendStub).toHaveBeenCalledTimes(0)
     })
@@ -95,14 +97,13 @@ describe('Laika', () => {
         interceptor.mockResultOnce({
           result: mockData,
         })
-        const [
-          { values: mockValues },
-          { values: remoteValues },
-          // eslint-disable-next-line no-await-in-loop
-        ] = (await waitFor(
+        // eslint-disable-next-line no-await-in-loop
+        const [result1, result2] = (await waitFor(
           execute(link, { query }),
           execute(link, { query }),
         )) as WaitForResult<unknown>
+        const { values: mockValues } = result1!
+        const { values: remoteValues } = result2!
         expect(mockValues).toEqual([mockData])
         expect(remoteValues).toEqual([data])
         expect(backendStub).toHaveBeenCalledTimes(triedCount)
@@ -238,13 +239,15 @@ describe('Laika', () => {
           interceptor.mockResultOnce({
             result: mockData,
           })
-          const [{ values }, { values: goodbyeValues }] = (await waitFor(
+          const [result1, result2] = (await waitFor(
             execute(link, { query }),
             execute(link, {
               query: goodbyeQuery,
               variables: { type: 'goodbye' },
             }),
           )) as WaitForResult<unknown>
+          const { values } = result1!
+          const { values: goodbyeValues } = result2!
           expect(values).toEqual([data])
           expect(goodbyeValues).toEqual([mockData])
           expect(backendStub).toHaveBeenCalledTimes(1)
