@@ -65,7 +65,7 @@ const CONSOLE_SUFFIX_PADDING = 60
 const CONSOLE_INTERCEPT_PADDING = 10
 const CONSOLE_TYPE_PADDING = 26
 const CONSOLE_TIME_SINCE_PADDING = 5
-const ONE_SECOND_IN_MS = 1000
+const ONE_SECOND_IN_MS = 1_000
 
 /**
  * Class responsible for managing interceptions.

@@ -27,9 +27,10 @@ describe('createLazyLoadableLink', () => {
     const link = createLazyLoadableLink(
       Promise.resolve(new ApolloLink(() => Observable.of(data))),
     )
-    const [{ values }] = (await waitFor(
-      execute(link, { query }),
-    )) as WaitForResult<typeof data>
+    const [result] = (await waitFor(execute(link, { query }))) as WaitForResult<
+      typeof data
+    >
+    const { values } = result!
     expect(values).toEqual([data])
   })
 
