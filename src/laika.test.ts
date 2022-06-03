@@ -190,6 +190,7 @@ describe('Laika', () => {
       const link = ApolloLink.from([interceptionLink, backendStub as any])
 
       const interceptor = laika.intercept()
+      const waitPromise = interceptor.waitForActiveSubscription()
 
       const observer = {
         next: jest.fn(),
@@ -197,24 +198,21 @@ describe('Laika', () => {
         error: jest.fn(),
       }
 
-      expect.assertions(3)
-
-      const hasSettled = jest.fn()
-      const waitPromise = interceptor.waitForActiveSubscription()
-
       expect(waitPromise).toBeInstanceOf(Promise)
-      void waitPromise!.then(hasSettled)
-
-      await onNextTick(() => {
-        expect(hasSettled).not.toHaveBeenCalled()
-      })
 
       const sub = execute(link, { query: subscription }).subscribe(observer)
 
       await onNextTick(() => {
-        expect(hasSettled).toHaveBeenCalled()
+        expect(observer.next).not.toHaveBeenCalled()
+        interceptor.fireSubscriptionUpdate({ result: mockData })
+        expect(observer.next).toHaveBeenCalled()
+
         sub.unsubscribe()
+        expect(observer.complete).not.toHaveBeenCalled()
+        expect(observer.error).not.toHaveBeenCalled()
       })
+
+      expect.assertions(5)
     })
 
     describe('intercept with a matcher', () => {
