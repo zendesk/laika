@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="generator" content="Docusaurus v2.0.0-beta.21">
 <title data-rh="true">Pitfalls | Laika</title><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://zendesk.github.io/laika/docs/pitfalls"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Pitfalls | Laika"><meta data-rh="true" name="description" content="Interceptor specificity vs ordering"><meta data-rh="true" property="og:description" content="Interceptor specificity vs ordering"><link data-rh="true" rel="icon" href="/laika/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://zendesk.github.io/laika/docs/pitfalls"><link data-rh="true" rel="alternate" href="https://zendesk.github.io/laika/docs/pitfalls" hreflang="en"><link data-rh="true" rel="alternate" href="https://zendesk.github.io/laika/docs/pitfalls" hreflang="x-default"><link rel="stylesheet" href="/laika/assets/css/styles.8a2486b0.css">
-<link rel="preload" href="/laika/assets/js/runtime~main.706b2f94.js" as="script">
+<link rel="preload" href="/laika/assets/js/runtime~main.6f022737.js" as="script">
 <link rel="preload" href="/laika/assets/js/main.abe01a2f.js" as="script">
 </head>
 <body class="navigation-with-keyboard">
@@ -16,7 +16,7 @@ Our mocked result will not end up being sent to the React component.
 Why? Because the first interceptor that satisfied all constraints (i.e. <em>none</em>),
 was actually <code>absolutelyEverythingInterceptor</code>.</p><p>Since we haven&#x27;t configured any behavior for this interceptor, it will passthrough
 the request to the backend.</p><p>However if you&#x27;d reverse the order of creation of each intercept, this would work correctly.</p></div></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages navigation"><a class="pagination-nav__link pagination-nav__link--prev" href="/laika/docs/logging-and-recording"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Logging and recording</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/laika/docs/api/classes/Laika.Laika-1"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Laika.Laika</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#interceptor-specificity-vs-ordering" class="table-of-contents__link toc-highlight">Interceptor specificity vs ordering</a></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 Zendesk Inc. Built with Docusaurus.</div></div></div></footer></div>
-<script src="/laika/assets/js/runtime~main.706b2f94.js"></script>
+<script src="/laika/assets/js/runtime~main.6f022737.js"></script>
 <script src="/laika/assets/js/main.abe01a2f.js"></script>
 </body>
 </html>
