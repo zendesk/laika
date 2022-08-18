@@ -61,7 +61,7 @@ it might be easy to forget that there might be other sources of data on the path
 
 If you've set-up all the mocks that were captured and your application
 still doesn't behave as expected, check the network tab to see
-if there ain't any good 'ol REST call on the way of our success!
+if there ain't any good 'ol REST call in the way of our success!
 
 If yes, and they look relevant to your action, you might need to make another mock for this purpose.
 Fortunately, Cypress provides us with the necessary built-in tools to move forward.
