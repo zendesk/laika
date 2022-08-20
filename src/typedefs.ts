@@ -120,8 +120,8 @@ export interface RecordingMarker {
 export type EventFilterFn = (event: RecordingElement) => boolean
 
 export interface InitialMock {
-  interceptorMatcher: MatcherObject,
-  mockResult: ResultOrFn,
+  interceptorMatcher: MatcherObject
+  mockResult: ResultOrFn
 }
 
 export interface CreateLaikaLinkOptions {

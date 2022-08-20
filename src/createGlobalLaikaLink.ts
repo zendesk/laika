@@ -21,7 +21,7 @@ export const getLaikaSingleton = memoize(
     if (initialMocks.length > 0) {
       initialMocks.forEach(({ interceptorMatcher, mockResult }) => {
         singleton.intercept(interceptorMatcher).mockResult(mockResult)
-      });
+      })
     }
 
     return singleton
@@ -41,7 +41,11 @@ export function createGlobalLaikaLink({
   if (clientName === '__unknown__') {
     throw new Error('LaikaLink: clientName is required')
   }
-  const laika = getLaikaSingleton(globalPropertyName, startLoggingImmediately, initialMocks)
+  const laika = getLaikaSingleton(
+    globalPropertyName,
+    startLoggingImmediately,
+    initialMocks,
+  )
   return laika.createLink((operation) => {
     operation.setContext({ clientName })
   })
