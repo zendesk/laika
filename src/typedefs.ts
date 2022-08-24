@@ -5,6 +5,7 @@ import type {
   Observable,
   Operation,
 } from '@apollo/client/core'
+import type { Laika } from './laika'
 
 /** @ignore */
 export type { FetchResult, NextLink, Operation } from '@apollo/client/core'
@@ -128,7 +129,7 @@ export interface CreateLaikaLinkOptions {
   clientName: string
   globalPropertyName?: string
   startLoggingImmediately?: boolean
-  initialMocks?: InitialMock[]
+  onLaikaReady?: (laika: Laika) => void
 }
 
 // helpers
