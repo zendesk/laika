@@ -7,6 +7,7 @@ export const getLaikaSingleton = memoize(
   (
     globalPropertyName: string = DEFAULT_GLOBAL_PROPERTY_NAME,
     startLoggingImmediately: boolean = false,
+    onLaikaReady?: (laika: Laika) => void,
   ) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access,no-multi-assign
     const singleton = ((globalThis as any)[globalPropertyName] = new Laika({
@@ -16,6 +17,9 @@ export const getLaikaSingleton = memoize(
     if (startLoggingImmediately) {
       singleton.log.startLogging()
     }
+
+    onLaikaReady?.(singleton)
+
     return singleton
   },
 )
@@ -28,11 +32,16 @@ export function createGlobalLaikaLink({
   clientName = '__unknown__',
   globalPropertyName,
   startLoggingImmediately = false,
+  onLaikaReady,
 }: CreateLaikaLinkOptions) {
   if (clientName === '__unknown__') {
     throw new Error('LaikaLink: clientName is required')
   }
-  const laika = getLaikaSingleton(globalPropertyName, startLoggingImmediately)
+  const laika = getLaikaSingleton(
+    globalPropertyName,
+    startLoggingImmediately,
+    onLaikaReady,
+  )
   return laika.createLink((operation) => {
     operation.setContext({ clientName })
   })
