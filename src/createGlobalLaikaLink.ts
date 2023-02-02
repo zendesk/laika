@@ -20,7 +20,7 @@ export const getLaikaSingleton = memoize(
 
     onLaikaReady?.(singleton)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
-    ;(globalThis as any)[`${globalPropertyName}ReadyCallbacks`]?.((fn) => fn(singleton))
+    ;(globalThis as any)[`${globalPropertyName}ReadyCallbacks`]?.((fn: (laika: Laika)) => fn(singleton))
 
     return singleton
   },
