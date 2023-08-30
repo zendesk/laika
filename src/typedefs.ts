@@ -3,19 +3,26 @@ import type {
   FetchResult,
   NextLink,
   Observable,
+  ObservableSubscription,
   Operation,
 } from '@apollo/client/core'
 import type { Laika } from './laika'
+
+interface SubscriptionObserver<T> {
+  closed: boolean
+  next: (value: T) => void
+  error: (errorValue: any) => void
+  complete: () => void
+}
 
 /** @ignore */
 export type { FetchResult, NextLink, Operation } from '@apollo/client/core'
 /** @ignore */
 export type Variables = Operation['variables']
 /** @ignore */
-export type FetchResultSubscriptionObserver =
-  ZenObservable.SubscriptionObserver<FetchResult>
+export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
 /** @ignore */
-export type Subscription = ZenObservable.Subscription
+export type Subscription = ObservableSubscription
 
 export type OnSubscribeCallback = (options: {
   operation: Operation

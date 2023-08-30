@@ -217,7 +217,7 @@ export class Laika {
           !observer.closed &&
           !keepNonSubscriptionConnectionsOpen
         ) {
-          observer.complete()
+          observer.complete?.()
         }
       } else if (
         !passthrough &&

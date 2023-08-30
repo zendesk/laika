@@ -52,11 +52,11 @@ export const getEmitValueFn =
       return
     }
     if (result.error) {
-      observer.error(result.error)
+      observer.error?.(result.error)
     } else if (result.result) {
-      observer.next(result.result)
+      observer.next?.(result.result)
     } else {
-      observer.error(
+      observer.error?.(
         new Error(
           `You haven't provided 'result' or 'error' properties to be pushed to the listeners of '${
             operation.operationName ?? '(anonymous operation)'

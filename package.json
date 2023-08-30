@@ -19,6 +19,9 @@
     "type": "git",
     "url": "https://github.com/zendesk/laika.git"
   },
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "license": "Apache-2.0",
   "author": "Zendesk <pingu-npm@zendesk.com>",
   "sideEffects": false,
@@ -61,10 +64,10 @@
     "test:types": "yarn rrun tsc --noEmit"
   },
   "dependencies": {
-    "@apollo/client": "^3.2.5",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@apollo/client": "^3.8.1",
     "@niieani/scaffold": "^1.5.0",
     "@types/jest": "^27.5.1",
     "@types/lodash": "^4.14.182",
