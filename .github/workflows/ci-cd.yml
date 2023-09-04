@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     # runs-on: [self-hosted, zendesk-stable]
     steps:
-      - uses: zendesk/checkout@v3
+      - uses: zendesk/checkout@v4
       - uses: zendesk/setup-node@v3
         with:
           node-version: 16
@@ -44,7 +44,7 @@ jobs:
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
-      - uses: zendesk/checkout@v3
+      - uses: zendesk/checkout@v4
       - uses: zendesk/setup-node@v3
         with:
           node-version: 16

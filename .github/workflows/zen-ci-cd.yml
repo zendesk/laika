@@ -13,7 +13,7 @@ jobs:
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     steps:
-      - uses: zendesk/checkout@v3
+      - uses: zendesk/checkout@v4
       - uses: zendesk/setup-node@v3
         with:
           node-version: 16
