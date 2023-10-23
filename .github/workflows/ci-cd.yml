@@ -17,7 +17,7 @@ jobs:
     # runs-on: [self-hosted, zendesk-stable]
     steps:
       - uses: zendesk/checkout@v3
-      - uses: zendesk/setup-node@v3
+      - uses: zendesk/setup-node@v4
         with:
           node-version: 16
       - id: find-yarn-cache-folder
@@ -45,7 +45,7 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
       - uses: zendesk/checkout@v3
-      - uses: zendesk/setup-node@v3
+      - uses: zendesk/setup-node@v4
         with:
           node-version: 16
       - id: find-yarn-cache-folder
