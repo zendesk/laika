@@ -13,15 +13,16 @@ jobs:
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     steps:
-      - uses: zendesk/checkout@v3
-      - uses: zendesk/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
+          cache: yarn
       - id: find-yarn-cache-folder
         name: Find Yarn's cache folder
         run: echo "::set-output name=path::$(yarn config get cacheFolder)"
       - name: Cache Yarn's cache folder
-        uses: zendesk/cache@v3.2.5
+        uses: actions/cache@v4
         with:
           path: ${{ steps.find-yarn-cache-folder.outputs.path }}
           key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
@@ -34,7 +35,7 @@ jobs:
           cd docs
           echo "::set-output name=path::$(yarn config get cacheFolder)"
       - name: Cache Docs Yarn's cache folder
-        uses: zendesk/cache@v3.2.5
+        uses: actions/cache@v4
         with:
           path: ${{ steps.find-yarn-cache-folder-docs.outputs.path }}
           key: yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('docs/yarn.lock') }}

@@ -67,12 +67,12 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@apollo/client": "^3.8.1",
-    "@niieani/scaffold": "^1.5.0",
-    "@types/jest": "^27.5.1",
-    "@types/lodash": "^4.14.182",
+    "@apollo/client": "^3.13.1",
+    "@niieani/scaffold": "^1.7.44",
+    "@types/jest": "^29.5.14",
+    "@types/lodash": "^4.17.15",
     "graphql": "^15.6.1 || ^16.0.0",
-    "graphql-tag": "^2.12.5",
+    "graphql-tag": "^2.12.6",
     "wait-for-observables": "^1.0.3"
   },
   "peerDependencies": {
@@ -104,5 +104,5 @@
       }
     ]
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@4.6.0"
 }
