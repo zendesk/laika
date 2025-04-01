@@ -554,7 +554,7 @@ ${variables}  } = {},
 
   const fixturesString = events
     .map((event) => event.fixtureFnString)
-    .filter((text) => Boolean(text))
+    .filter(Boolean)
     .join('\n')
 
   const grouped = groupBy(events, ({ clientName, operationName, feature }) =>

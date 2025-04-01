@@ -322,7 +322,7 @@ export class Laika {
         })
         return interceptApi
       },
-      waitForActiveSubscription() {
+      async waitForActiveSubscription() {
         ensureBehaviorRegistered()
         if (observerToOperationMap.size > 0) return undefined
         return interceptApi.waitForNextSubscription().then(noop)
