@@ -27,7 +27,7 @@
 
 import noop from 'lodash/noop'
 import { Subscription } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { map, take } from 'rxjs/operators'
 import { ApolloLink, Observable } from '@apollo/client/core'
 import type { GenerateCodeOptions } from './codeGenerator'
 import { generateCode } from './codeGenerator'
@@ -224,29 +224,34 @@ export class Laika {
       ) {
         // we want to pass through a single request, but nothing beyond that
         enablePassthrough(
-          ({ disablePassthrough, forward }) =>
-            new Observable((observer) => {
-              // this is the equivalent of take(1), which zen-observable does not offer:
-              const unsubscriber: {
-                current: Subscription['unsubscribe'] | undefined
-              } = { current: undefined }
-              const innerSubscription = forward(operation).subscribe({
-                next: (remoteResult) => {
-                  observer.next(remoteResult)
-                  observer.complete()
-                  unsubscriber.current?.()
-                  disablePassthrough()
-                },
-                complete: () => {
-                  if (!observer.complete) observer.complete()
-                },
-                error: (remoteError) => {
-                  observer.error(remoteError)
-                },
-              })
+          ({ disablePassthrough, forward }) => {
+            // is this still necessary?
+            disablePassthrough()
+            return forward(operation).pipe(take(1))
+          },
 
-              unsubscriber.current = innerSubscription.unsubscribe
-            }),
+          // new Observable((observer) => {
+          //   // this is the equivalent of take(1), which zen-observable does not offer:
+          //   const unsubscriber: {
+          //     current: Subscription['unsubscribe'] | undefined
+          //   } = { current: undefined }
+          //   const innerSubscription = forward(operation).subscribe({
+          //     next: (remoteResult) => {
+          //       observer.next(remoteResult)
+          //       observer.complete()
+          //       unsubscriber.current?.()
+          //       disablePassthrough()
+          //     },
+          //     complete: () => {
+          //       if (!observer.complete) observer.complete()
+          //     },
+          //     error: (remoteError) => {
+          //       observer.error(remoteError)
+          //     },
+          //   })
+
+          //   unsubscriber.current = innerSubscription.unsubscribe
+          // }),
         )
       }
 

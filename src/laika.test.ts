@@ -1,6 +1,5 @@
 import gql from 'graphql-tag'
 import { firstValueFrom, lastValueFrom, of, take } from 'rxjs'
-// import waitFor from 'wait-for-observables'
 import {
   ApolloClient,
   ApolloLink,
@@ -108,12 +107,15 @@ describe('Laika', () => {
           result: mockData,
         })
 
-        const observable = execute(link, { query }, { client })
-        /* eslint-disable no-await-in-loop */
-        const resultMockedOnce = await firstValueFrom(observable.pipe(take(1)))
-        const unmockedResult = await lastValueFrom(observable)
-        /* eslint-enable no-await-in-loop */
-        expect(resultMockedOnce).toEqual(mockData)
+        const observable = execute(link, { query }, { client }).pipe(take(2))
+
+        // eslint-disable-next-line no-await-in-loop
+        const [mockedResult, unmockedResult] = await Promise.all([
+          firstValueFrom(observable),
+          lastValueFrom(observable),
+        ])
+
+        expect(mockedResult).toEqual(mockData)
         expect(unmockedResult).toEqual(data)
         expect(backendStubSpy).toHaveBeenCalledTimes(triedCount)
       }
