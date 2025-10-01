@@ -26,14 +26,9 @@
 /* eslint-disable no-console */
 
 import noop from 'lodash/noop'
-import {
-  ApolloLink,
-  FetchResult,
-  NextLink,
-  Observable,
-  Observer,
-  Operation,
-} from '@apollo/client/core'
+import { Subscription } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { ApolloLink, Observable } from '@apollo/client/core'
 import type { GenerateCodeOptions } from './codeGenerator'
 import { generateCode } from './codeGenerator'
 import { LOGGING_DISABLED_MATCHER } from './constants'
@@ -43,20 +38,23 @@ import { getEmitValueFn, getMatcherFn } from './linkUtils'
 import type {
   Behavior,
   EventFilterFn,
+  FetchResult,
   FetchResultSubscriptionObserver,
   InterceptorFn,
   ManInTheMiddleFn,
   Matcher,
   MatcherFn,
+  NextLink,
   OnSubscribe,
   OnSubscribeCallback,
+  Operation,
   PassthroughDisableFn,
   PassthroughEnableFn,
   RecordingElement,
   Result,
   ResultOrFn,
   SubscribeMeta,
-  Subscription,
+  // Subscription,
   Variables,
 } from './typedefs'
 
@@ -406,8 +404,11 @@ export class Laika {
     matcher: Matcher | undefined,
     mapFn: (result: FetchResult, operation: Operation) => FetchResult,
   ) {
-    const interceptor = this.intercept(matcher, ({ forward, operation }) =>
-      forward(operation).map((result) => mapFn(result, operation)),
+    const interceptor = this.intercept(
+      matcher,
+      ({ forward, operation }) =>
+        forward(operation).pipe(map((result) => mapFn(result, operation))),
+      // forward(operation).map((result) => mapFn(result, operation)),
     )
 
     return {
@@ -499,7 +500,7 @@ export class Laika {
 
   /**
    * @internal
-   * */
+   */
   interceptor: InterceptorFn = (operation, forward) =>
     new Observable<FetchResult>((observer) => {
       // we're subscribed, e.g. a component with useQuery was mounted or a refetch was requested
@@ -599,7 +600,7 @@ export class Laika {
         operation.setContext({ interceptMode: 'disposed' })
         // TODO: does it make sense to complete the observer here? `if (!o.closed) o.complete()`
       }
-    }).map(this.getLogFunction({ operation, forward }))
+    }).pipe(map(this.getLogFunction({ operation, forward })))
 
   // interceptor-related properties:
 
@@ -892,7 +893,7 @@ export declare abstract class InterceptApi {
    */
   waitForNextSubscription(): Promise<{
     operation: Operation
-    observer: Observer<FetchResult>
+    // observer: Observer<FetchResult>
   }>
   /**
    * Push data to an already active `subscription`-type operation.

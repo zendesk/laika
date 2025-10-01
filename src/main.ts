@@ -36,6 +36,6 @@ export type {
   ResultFn,
   ResultOrFn,
   SubscribeMeta,
-  Subscription,
+  // Subscription,
   Variables,
 } from './typedefs'

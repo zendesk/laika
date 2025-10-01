@@ -67,16 +67,18 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@apollo/client": "^3.13.1",
+    "@apollo/client": "^4.0.6",
     "@niieani/scaffold": "^1.7.44",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.15",
     "graphql": "^15.6.1 || ^16.0.0",
     "graphql-tag": "^2.12.6",
+    "rxjs": "^7.3.0",
     "wait-for-observables": "^1.0.3"
   },
   "peerDependencies": {
-    "@apollo/client": ">=3.2.5"
+    "@apollo/client": ">=3.2.5",
+    "rxjs": "^7.3.0"
   },
   "publishConfig": {
     "access": "public"

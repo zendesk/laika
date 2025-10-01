@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
-  FetchResult,
-  NextLink,
+  ApolloLink,
   Observable,
-  ObservableSubscription,
-  Operation,
+  // ObservableSubscription
 } from '@apollo/client/core'
 import type { Laika } from './laika'
 
@@ -15,14 +13,19 @@ interface SubscriptionObserver<T> {
   complete: () => void
 }
 
-/** @ignore */
-export type { FetchResult, NextLink, Operation } from '@apollo/client/core'
+export type Operation = ApolloLink.Operation
+export type FetchResult = ApolloLink.Result
+export type NextLink = ApolloLink.ForwardFunction
+// export type ObservableSubscription = ApolloLink.
+
+// /** @ignore */
+// export type { NextLink } from '@apollo/client/core'
 /** @ignore */
 export type Variables = Operation['variables']
 /** @ignore */
 export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
 /** @ignore */
-export type Subscription = ObservableSubscription
+// export type Subscription = ObservableSubscription
 
 export type OnSubscribeCallback = (options: {
   operation: Operation

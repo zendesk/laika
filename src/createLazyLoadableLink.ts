@@ -1,3 +1,4 @@
+import { mergeMap } from 'rxjs'
 import { ApolloLink, Observable } from '@apollo/client/core'
 
 /**
@@ -21,13 +22,15 @@ export const createLazyLoadableLink = (linkPromise: Promise<ApolloLink>) =>
         )
       },
     )
-    return linkObservable.flatMap((link) => {
-      const actualLinkObservable = link?.request(operation, forward)
-      if (!actualLinkObservable) {
-        throw new Error(
-          `LazyLoadableLink: Incorrect linkPromise provided or it's request function returned null`,
-        )
-      }
-      return actualLinkObservable
-    })
+    return linkObservable.pipe(
+      mergeMap((link) => {
+        const actualLinkObservable = link?.request(operation, forward)
+        if (!actualLinkObservable) {
+          throw new Error(
+            `LazyLoadableLink: Incorrect linkPromise provided or it's request function returned null`,
+          )
+        }
+        return actualLinkObservable
+      }),
+    )
   })
