@@ -227,11 +227,14 @@ export class Laika {
           ({ disablePassthrough, forward }) =>
             new Observable((observer) => {
               // this is the equivalent of take(1), which zen-observable does not offer:
+              const unsubscriber: {
+                current: Subscription['unsubscribe'] | undefined
+              } = { current: undefined }
               const innerSubscription = forward(operation).subscribe({
                 next: (remoteResult) => {
                   observer.next(remoteResult)
                   observer.complete()
-                  innerSubscription.unsubscribe()
+                  unsubscriber.current?.()
                   disablePassthrough()
                 },
                 complete: () => {
@@ -241,6 +244,8 @@ export class Laika {
                   observer.error(remoteError)
                 },
               })
+
+              unsubscriber.current = innerSubscription.unsubscribe
             }),
         )
       }

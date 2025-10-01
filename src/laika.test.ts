@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import { lastValueFrom, of, take } from 'rxjs'
+import { firstValueFrom, lastValueFrom, of, take } from 'rxjs'
 // import waitFor from 'wait-for-observables'
 import {
   ApolloClient,
@@ -48,6 +48,11 @@ const mockDataImmediate = { data: { so: 'fast' } }
 
 jest.setTimeout(1_000)
 
+const client = new ApolloClient({
+  link: ApolloLink.empty(),
+  cache: new InMemoryCache(),
+})
+
 describe('Laika', () => {
   it('returns passthrough data from the following link', async () => {
     const laika = new Laika({
@@ -60,178 +65,166 @@ describe('Laika', () => {
 
     const link = ApolloLink.from([interceptionLink, backendStub])
 
-    const result = await lastValueFrom(
-      execute(
-        link,
-        { query },
-        {
-          client: new ApolloClient({
-            link: ApolloLink.empty(),
-            cache: new InMemoryCache(),
-          }),
-        },
-      ),
-    )
+    const result = await lastValueFrom(execute(link, { query }, { client }))
 
     expect(result).toEqual(data)
     expect(backendStubSpy).toHaveBeenCalledTimes(1)
   })
 
-  // describe('Intercept API', () => {
-  //   it('returns mocked data and does not connect to the following link', async () => {
-  //     const laika = new Laika({
-  //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
-  //     })
-  //     const interceptionLink = laika.createLink()
+  describe('Intercept API', () => {
+    it('returns mocked data and does not connect to the following link', async () => {
+      const laika = new Laika({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
+      const interceptionLink = laika.createLink()
 
-  //     const backendStub = jest.fn(() => Observable.of(data))
-  //     const link = ApolloLink.from([interceptionLink, backendStub as any])
-  //     const interceptor = laika.intercept()
-  //     interceptor.mockResultOnce({
-  //       result: mockData,
-  //     })
-  //     const [result] = (await waitFor(
-  //       execute(link, { query }),
-  //     )) as WaitForResult<unknown>
-  //     const { values } = result!
-  //     expect(values).toEqual([mockData])
-  //     expect(backendStub).toHaveBeenCalledTimes(0)
-  //   })
+      const backendStub = new ApolloLink(() => of(data))
+      const backendStubSpy = jest.spyOn(backendStub, 'request')
 
-  //   it('returns mock once and then falls back to the following link - twice in a row', async () => {
-  //     const laika = new Laika({
-  //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
-  //     })
-  //     const interceptionLink = laika.createLink()
+      const link = ApolloLink.from([interceptionLink, backendStub])
+      const interceptor = laika.intercept()
+      interceptor.mockResultOnce({
+        result: mockData,
+      })
+      const result = await lastValueFrom(execute(link, { query }, { client }))
+      expect(result).toEqual(mockData)
+      expect(backendStubSpy).toHaveBeenCalledTimes(0)
+    })
 
-  //     const backendStub = jest.fn(() => Observable.of(data))
-  //     const link = ApolloLink.from([interceptionLink, backendStub as any])
-  //     const interceptor = laika.intercept()
+    it('returns mock once and then falls back to the following link - twice in a row', async () => {
+      const laika = new Laika({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
+      const interceptionLink = laika.createLink()
 
-  //     let triedCount = 0
-  //     while (++triedCount <= 2) {
-  //       interceptor.mockResultOnce({
-  //         result: mockData,
-  //       })
-  //       // eslint-disable-next-line no-await-in-loop
-  //       const [result1, result2] = (await waitFor(
-  //         execute(link, { query }),
-  //         execute(link, { query }),
-  //       )) as WaitForResult<unknown>
-  //       const { values: mockValues } = result1!
-  //       const { values: remoteValues } = result2!
-  //       expect(mockValues).toEqual([mockData])
-  //       expect(remoteValues).toEqual([data])
-  //       expect(backendStub).toHaveBeenCalledTimes(triedCount)
-  //     }
-  //   })
+      const backendStub = new ApolloLink(() => of(data))
+      const backendStubSpy = jest.spyOn(backendStub, 'request')
+      const link = ApolloLink.from([interceptionLink, backendStub])
+      const interceptor = laika.intercept()
 
-  //   it('connects to a mocked subscription without connecting to the following link and immediately fires mocked data', async () => {
-  //     const laika = new Laika({
-  //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
-  //     })
-  //     const interceptionLink = laika.createLink()
+      let triedCount = 0
+      while (++triedCount <= 2) {
+        interceptor.mockResultOnce({
+          result: mockData,
+        })
 
-  //     const mockedResultFn = jest.fn(() => ({ result: mockDataImmediate }))
-  //     const backendStub = jest.fn(() => Observable.of(data))
-  //     const link = ApolloLink.from([interceptionLink, backendStub as any])
+        const observable = execute(link, { query }, { client })
+        /* eslint-disable no-await-in-loop */
+        const resultMockedOnce = await firstValueFrom(observable.pipe(take(1)))
+        const unmockedResult = await lastValueFrom(observable)
+        /* eslint-enable no-await-in-loop */
+        expect(resultMockedOnce).toEqual(mockData)
+        expect(unmockedResult).toEqual(data)
+        expect(backendStubSpy).toHaveBeenCalledTimes(triedCount)
+      }
+    })
 
-  //     const interceptor = laika.intercept()
+    //   it('connects to a mocked subscription without connecting to the following link and immediately fires mocked data', async () => {
+    //     const laika = new Laika({
+    //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    //     })
+    //     const interceptionLink = laika.createLink()
 
-  //     // testing that this will get pushed immediately
-  //     interceptor.mockResultOnce(mockedResultFn)
+    //     const mockedResultFn = jest.fn(() => ({ result: mockDataImmediate }))
+    //     const backendStub = jest.fn(() => Observable.of(data))
+    //     const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-  //     const observer = {
-  //       next: jest.fn(),
-  //       complete: jest.fn(),
-  //       error: jest.fn(),
-  //     }
+    //     const interceptor = laika.intercept()
 
-  //     const sub = execute(link, { query: subscription }).subscribe(observer)
-  //     expect.assertions(7)
+    //     // testing that this will get pushed immediately
+    //     interceptor.mockResultOnce(mockedResultFn)
 
-  //     await onNextTick(() => {
-  //       expect(mockedResultFn).toHaveBeenCalledTimes(1)
-  //       expect(observer.next).toHaveBeenCalledTimes(1)
-  //       expect(observer.next).toHaveBeenCalledWith(mockDataImmediate)
-  //       expect(observer.complete).not.toHaveBeenCalled()
-  //       expect(backendStub).toHaveBeenCalledTimes(0)
-  //       sub.unsubscribe()
-  //       expect(observer.complete).not.toHaveBeenCalled()
-  //       expect(observer.error).not.toHaveBeenCalled()
-  //     })
-  //   })
+    //     const observer = {
+    //       next: jest.fn(),
+    //       complete: jest.fn(),
+    //       error: jest.fn(),
+    //     }
 
-  //   it('connects to a mocked subscription without connecting to the following link, then fires a mock update', async () => {
-  //     const laika = new Laika({
-  //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
-  //     })
-  //     const interceptionLink = laika.createLink()
+    //     const sub = execute(link, { query: subscription }).subscribe(observer)
+    //     expect.assertions(7)
 
-  //     const backendStub = jest.fn(() => Observable.of(data))
-  //     const link = ApolloLink.from([interceptionLink, backendStub as any])
+    //     await onNextTick(() => {
+    //       expect(mockedResultFn).toHaveBeenCalledTimes(1)
+    //       expect(observer.next).toHaveBeenCalledTimes(1)
+    //       expect(observer.next).toHaveBeenCalledWith(mockDataImmediate)
+    //       expect(observer.complete).not.toHaveBeenCalled()
+    //       expect(backendStub).toHaveBeenCalledTimes(0)
+    //       sub.unsubscribe()
+    //       expect(observer.complete).not.toHaveBeenCalled()
+    //       expect(observer.error).not.toHaveBeenCalled()
+    //     })
+    //   })
 
-  //     const interceptor = laika.intercept()
+    //   it('connects to a mocked subscription without connecting to the following link, then fires a mock update', async () => {
+    //     const laika = new Laika({
+    //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    //     })
+    //     const interceptionLink = laika.createLink()
 
-  //     const observer = {
-  //       next: jest.fn(),
-  //       complete: jest.fn(),
-  //       error: jest.fn(),
-  //     }
+    //     const backendStub = jest.fn(() => Observable.of(data))
+    //     const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-  //     expect.assertions(7)
+    //     const interceptor = laika.intercept()
 
-  //     const sub = execute(link, { query: subscription }).subscribe(observer)
+    //     const observer = {
+    //       next: jest.fn(),
+    //       complete: jest.fn(),
+    //       error: jest.fn(),
+    //     }
 
-  //     await onNextTick(() => {
-  //       expect(observer.next).not.toHaveBeenCalled()
-  //       interceptor.fireSubscriptionUpdate({ result: mockData })
-  //       expect(observer.next).toHaveBeenCalledTimes(1)
-  //       expect(observer.next).toHaveBeenCalledWith(mockData)
-  //       expect(observer.complete).not.toHaveBeenCalled()
-  //       expect(backendStub).toHaveBeenCalledTimes(0)
-  //       sub.unsubscribe()
-  //       expect(observer.complete).not.toHaveBeenCalled()
-  //       expect(observer.error).not.toHaveBeenCalled()
-  //     })
-  //   })
+    //     expect.assertions(7)
 
-  //   it('waitForActiveSubscription generates a Promise when no current active subscription, which resolves once one is made', async () => {
-  //     const laika = new Laika({
-  //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
-  //     })
-  //     const interceptionLink = laika.createLink()
+    //     const sub = execute(link, { query: subscription }).subscribe(observer)
 
-  //     const backendStub = jest.fn(() => Observable.of(data))
-  //     const link = ApolloLink.from([interceptionLink, backendStub as any])
+    //     await onNextTick(() => {
+    //       expect(observer.next).not.toHaveBeenCalled()
+    //       interceptor.fireSubscriptionUpdate({ result: mockData })
+    //       expect(observer.next).toHaveBeenCalledTimes(1)
+    //       expect(observer.next).toHaveBeenCalledWith(mockData)
+    //       expect(observer.complete).not.toHaveBeenCalled()
+    //       expect(backendStub).toHaveBeenCalledTimes(0)
+    //       sub.unsubscribe()
+    //       expect(observer.complete).not.toHaveBeenCalled()
+    //       expect(observer.error).not.toHaveBeenCalled()
+    //     })
+    //   })
 
-  //     const interceptor = laika.intercept()
+    //   it('waitForActiveSubscription generates a Promise when no current active subscription, which resolves once one is made', async () => {
+    //     const laika = new Laika({
+    //       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+    //     })
+    //     const interceptionLink = laika.createLink()
 
-  //     const observer = {
-  //       next: jest.fn(),
-  //       complete: jest.fn(),
-  //       error: jest.fn(),
-  //     }
+    //     const backendStub = jest.fn(() => Observable.of(data))
+    //     const link = ApolloLink.from([interceptionLink, backendStub as any])
 
-  //     expect.assertions(3)
+    //     const interceptor = laika.intercept()
 
-  //     const hasSettled = jest.fn()
-  //     const waitPromise = interceptor.waitForActiveSubscription()
+    //     const observer = {
+    //       next: jest.fn(),
+    //       complete: jest.fn(),
+    //       error: jest.fn(),
+    //     }
 
-  //     expect(waitPromise).toBeInstanceOf(Promise)
-  //     void waitPromise!.then(hasSettled)
+    //     expect.assertions(3)
 
-  //     await onNextTick(() => {
-  //       expect(hasSettled).not.toHaveBeenCalled()
-  //     })
+    //     const hasSettled = jest.fn()
+    //     const waitPromise = interceptor.waitForActiveSubscription()
 
-  //     const sub = execute(link, { query: subscription }).subscribe(observer)
+    //     expect(waitPromise).toBeInstanceOf(Promise)
+    //     void waitPromise!.then(hasSettled)
 
-  //     await onNextTick(() => {
-  //       expect(hasSettled).toHaveBeenCalled()
-  //       sub.unsubscribe()
-  //     })
-  //   })
+    //     await onNextTick(() => {
+    //       expect(hasSettled).not.toHaveBeenCalled()
+    //     })
+
+    //     const sub = execute(link, { query: subscription }).subscribe(observer)
+
+    //     await onNextTick(() => {
+    //       expect(hasSettled).toHaveBeenCalled()
+    //       sub.unsubscribe()
+    //     })
+  })
 
   //   describe('intercept with a matcher', () => {
   //     it.each([
