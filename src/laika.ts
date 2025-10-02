@@ -569,6 +569,7 @@ export class Laika {
 
         operation.setContext({ interceptMode: mitm ? 'mitm' : 'passthrough' })
         passthroughSubscription = forward$.subscribe(observer)
+
         lastMitm = mitm
 
         return true
