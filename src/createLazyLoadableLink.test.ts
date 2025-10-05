@@ -1,78 +1,89 @@
-describe('null', () => {
-  it.todo('skip')
+import gql from 'graphql-tag'
+import { of, Subscriber } from 'rxjs'
+import waitFor from 'wait-for-observables'
+import {
+  ApolloClient,
+  ApolloLink,
+  execute,
+  InMemoryCache,
+  Observable,
+} from '@apollo/client/core'
+import { createLazyLoadableLink } from './createLazyLoadableLink'
+import { onNextTick, WaitForResult } from './testUtils'
+
+const query = gql`
+  query helloQuery {
+    sample {
+      id
+    }
+  }
+`
+
+const subscription = gql`
+  subscription helloSubscription {
+    sample {
+      id
+    }
+  }
+`
+
+const client = new ApolloClient({
+  link: ApolloLink.empty(),
+  cache: new InMemoryCache(),
 })
-// import gql from 'graphql-tag'
-// import waitFor from 'wait-for-observables'
-// import { ApolloLink, execute, Observable, Observer } from '@apollo/client/core'
-// import { createLazyLoadableLink } from './createLazyLoadableLink'
-// import { onNextTick, WaitForResult } from './testUtils'
 
-// const query = gql`
-//   query helloQuery {
-//     sample {
-//       id
-//     }
-//   }
-// `
+const data = { data: { hello: 'world' } }
 
-// const subscription = gql`
-//   subscription helloSubscription {
-//     sample {
-//       id
-//     }
-//   }
-// `
+describe('createLazyLoadableLink', () => {
+  it('returns passthrough data from the following link', async () => {
+    const link = createLazyLoadableLink(
+      Promise.resolve(new ApolloLink(() => of(data))),
+    )
+    const [result] = (await waitFor(
+      execute(link, { query }, { client }),
+    )) as WaitForResult<typeof data>
+    const { values } = result!
+    expect(values).toEqual([data])
+  })
 
-// const data = { data: { hello: 'world' } }
+  it('correctly emits subsequent values from the following link and completes the returned Observable when the Observable returned from the lazily loaded link completes', async () => {
+    let observer: Subscriber<number>
+    const link = createLazyLoadableLink(
+      Promise.resolve(
+        new ApolloLink(
+          () =>
+            new Observable((obs) => {
+              observer = obs as any
+            }),
+        ),
+      ),
+    )
 
-// describe('createLazyLoadableLink', () => {
-//   it('returns passthrough data from the following link', async () => {
-//     const link = createLazyLoadableLink(
-//       Promise.resolve(new ApolloLink(() => Observable.of(data))),
-//     )
-//     const [result] = (await waitFor(execute(link, { query }))) as WaitForResult<
-//       typeof data
-//     >
-//     const { values } = result!
-//     expect(values).toEqual([data])
-//   })
+    const outerObserver = {
+      next: jest.fn(),
+      complete: jest.fn(),
+      error: jest.fn(),
+    }
 
-//   it('correctly emits subsequent values from the following link and completes the returned Observable when the Observable returned from the lazily loaded link completes', async () => {
-//     let observer: Observer<unknown>
-//     const link = createLazyLoadableLink(
-//       Promise.resolve(
-//         new ApolloLink(
-//           () =>
-//             new Observable((obs) => {
-//               observer = obs
-//             }),
-//         ),
-//       ),
-//     )
+    const sub = execute(link, { query: subscription }, { client }).subscribe(
+      outerObserver,
+    )
 
-//     const outerObserver = {
-//       next: jest.fn(),
-//       complete: jest.fn(),
-//       error: jest.fn(),
-//     }
-
-//     const sub = execute(link, { query: subscription }).subscribe(outerObserver)
-
-//     expect.assertions(9)
-//     await onNextTick(() => {
-//       observer.next!(1)
-//       expect(outerObserver.next).toHaveBeenCalledTimes(1)
-//       expect(outerObserver.next).toHaveBeenLastCalledWith(1)
-//       expect(outerObserver.complete).not.toHaveBeenCalled()
-//       observer.next!(2)
-//       expect(outerObserver.next).toHaveBeenCalledTimes(2)
-//       expect(outerObserver.next).toHaveBeenLastCalledWith(2)
-//       expect(outerObserver.complete).not.toHaveBeenCalled()
-//       observer.complete!()
-//       expect(outerObserver.complete).toHaveBeenCalledTimes(1)
-//       expect(outerObserver.next).toHaveBeenLastCalledWith(2)
-//       expect(outerObserver.error).not.toHaveBeenCalled()
-//       sub.unsubscribe()
-//     })
-//   })
-// })
+    expect.assertions(9)
+    await onNextTick(() => {
+      observer.next(1)
+      expect(outerObserver.next).toHaveBeenCalledTimes(1)
+      expect(outerObserver.next).toHaveBeenLastCalledWith(1)
+      expect(outerObserver.complete).not.toHaveBeenCalled()
+      observer.next(2)
+      expect(outerObserver.next).toHaveBeenCalledTimes(2)
+      expect(outerObserver.next).toHaveBeenLastCalledWith(2)
+      expect(outerObserver.complete).not.toHaveBeenCalled()
+      observer.complete()
+      expect(outerObserver.complete).toHaveBeenCalledTimes(1)
+      expect(outerObserver.next).toHaveBeenLastCalledWith(2)
+      expect(outerObserver.error).not.toHaveBeenCalled()
+      sub.unsubscribe()
+    })
+  })
+})
