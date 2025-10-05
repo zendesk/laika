@@ -1,6 +1,5 @@
 import {
   ApolloClient,
-  ApolloError,
   ApolloLink,
   gql,
   InMemoryCache,
@@ -124,10 +123,8 @@ describe('integration tests', () => {
       intercept.mockResult({ error: new Error('An error occurred') })
 
       await expect(client.query({ query })).rejects.toMatchObject(
-        new ApolloError({ errorMessage: 'An error occurred' }),
+        new Error('An error occurred'),
       )
-
-      expect(true).toBe(true)
     })
   })
 
@@ -219,15 +216,9 @@ describe('integration tests', () => {
         `,
       })
 
-      // Create some mocks to capture what happens on various events
+      // Mock `next` callback and subscribe to the observable
       const next = jest.fn()
-      const error = jest.fn()
-
-      // Subscribes to the observable, with specific callbacks
-      const subscription = observable.subscribe({
-        next,
-        error,
-      })
+      const subscription = observable.subscribe({ next })
 
       // Wait for subscription to be established
       await intercept.waitForActiveSubscription()
@@ -252,10 +243,12 @@ describe('integration tests', () => {
       intercept.fireSubscriptionUpdate({
         error: new Error('An error occurred'),
       })
-      expect(error).toHaveBeenLastCalledWith(new Error('An error occurred'))
+      expect(next).toHaveBeenLastCalledWith({
+        data: undefined,
+        error: new Error('An error occurred'),
+      })
 
-      expect(next).toHaveBeenCalledTimes(2)
-      expect(error).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledTimes(3)
 
       subscription.unsubscribe()
     })
