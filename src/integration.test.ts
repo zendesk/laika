@@ -1,5 +1,6 @@
 import {
   ApolloClient,
+  ApolloError,
   ApolloLink,
   gql,
   InMemoryCache,
@@ -115,6 +116,19 @@ describe('integration tests', () => {
       )
       expect(intercept.calls).toHaveLength(3)
     })
+
+    it('can mock errors', async () => {
+      const [laika, client] = setup()
+
+      const intercept = laika.intercept()
+      intercept.mockResult({ error: new Error('An error occurred') })
+
+      await expect(client.query({ query })).rejects.toMatchObject(
+        new ApolloError({ errorMessage: 'An error occurred' }),
+      )
+
+      expect(true).toBe(true)
+    })
   })
 
   describe('modifyRemote', () => {
@@ -187,6 +201,63 @@ describe('integration tests', () => {
       ).resolves.toMatchObject({
         data: { modifiedValue: 'present', sample: 'not mocked' },
       })
+    })
+  })
+
+  describe('subscription mocking', () => {
+    it('WF', async () => {
+      const [laika, client] = setup()
+
+      const intercept = laika.intercept()
+
+      // Create an observable to subscribe to
+      const observable = client.subscribe({
+        query: gql`
+          subscription sampleSubscription {
+            number
+          }
+        `,
+      })
+
+      // Create some mocks to capture what happens on various events
+      const next = jest.fn()
+      const error = jest.fn()
+
+      // Subscribes to the observable, with specific callbacks
+      const subscription = observable.subscribe({
+        next,
+        error,
+      })
+
+      // Wait for subscription to be established
+      await intercept.waitForActiveSubscription()
+
+      // Update once
+      intercept.fireSubscriptionUpdate({
+        result: {
+          data: { number: 1 },
+        },
+      })
+      expect(next).toHaveBeenLastCalledWith({ data: { number: 1 } })
+
+      // Update twice
+      intercept.fireSubscriptionUpdate({
+        result: {
+          data: { number: 2 },
+        },
+      })
+      expect(next).toHaveBeenLastCalledWith({ data: { number: 2 } })
+
+      // Update with error
+      intercept.fireSubscriptionUpdate({
+        error: new Error('An error occurred'),
+      })
+      expect(error).toHaveBeenLastCalledWith(new Error('An error occurred'))
+
+      expect(next).toHaveBeenCalledTimes(2)
+      expect(error).toHaveBeenCalledTimes(1)
+
+      subscription.unsubscribe()
     })
   })
 })
