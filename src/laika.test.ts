@@ -1,22 +1,10 @@
 import gql from 'graphql-tag'
-import {
-  firstValueFrom,
-  lastValueFrom,
-  Observer,
-  of,
-  take,
-  throwError,
-} from 'rxjs'
+import { firstValueFrom, lastValueFrom, Observer, of, take } from 'rxjs'
 import {
   ApolloClient,
   ApolloLink,
   execute,
-  HttpLink,
   InMemoryCache,
-  // fromError,
-  Observable,
-  // Observer,
-  // Operation,
 } from '@apollo/client/core'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { Laika } from './laika'
