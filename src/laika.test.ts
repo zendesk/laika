@@ -8,7 +8,7 @@ import {
 } from '@apollo/client/core'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { Laika } from './laika'
-import { onNextTick, WaitForResult } from './testUtils'
+import { onNextTick } from './testUtils'
 
 const query = gql`
   query helloQuery {
@@ -39,8 +39,6 @@ const standardError = new Error('I never work')
 const data = { data: { hello: 'world' } }
 const mockData = { data: { goodbye: 'world' } }
 const mockDataImmediate = { data: { so: 'fast' } }
-
-jest.setTimeout(1_000)
 
 const client = new ApolloClient({
   link: ApolloLink.empty(),

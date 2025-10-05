@@ -1,5 +1,5 @@
 import type { DefinitionNode, OperationTypeNode } from 'graphql'
-import type { Operation } from '@apollo/client/core'
+import type { ApolloLink } from '@apollo/client/core'
 
 const checkOperationType = (
   definitions: readonly DefinitionNode[],
@@ -11,13 +11,13 @@ const checkOperationType = (
   )
 
 export const hasSubscriptionOperation = (
-  /** @type {Operation} */ { query }: Operation,
+  /** @type {Operation} */ { query }: ApolloLink.Operation,
 ) => checkOperationType(query.definitions, 'subscription' as OperationTypeNode)
 
 export const hasMutationOperation = (
-  /** @type {Operation} */ { query }: Operation,
+  /** @type {Operation} */ { query }: ApolloLink.Operation,
 ) => checkOperationType(query.definitions, 'mutation' as OperationTypeNode)
 
 export const hasQueryOperation = (
-  /** @type {Operation} */ { query }: Operation,
+  /** @type {Operation} */ { query }: ApolloLink.Operation,
 ) => checkOperationType(query.definitions, 'query' as OperationTypeNode)

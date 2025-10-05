@@ -38,23 +38,19 @@ import { getEmitValueFn, getMatcherFn } from './linkUtils'
 import type {
   Behavior,
   EventFilterFn,
-  FetchResult,
   FetchResultSubscriptionObserver,
   InterceptorFn,
   ManInTheMiddleFn,
   Matcher,
   MatcherFn,
-  NextLink,
   OnSubscribe,
   OnSubscribeCallback,
-  Operation,
   PassthroughDisableFn,
   PassthroughEnableFn,
   RecordingElement,
   Result,
   ResultOrFn,
   SubscribeMeta,
-  // Subscription,
   Variables,
 } from './typedefs'
 
@@ -147,7 +143,7 @@ export class Laika {
 
     const observerToOperationMap: Map<
       FetchResultSubscriptionObserver,
-      Operation
+      ApolloLink.Operation
     > = new Map()
 
     const calledWithVariables: Variables[] = []
@@ -412,7 +408,10 @@ export class Laika {
    */
   modifyRemote(
     matcher: Matcher | undefined,
-    mapFn: (result: FetchResult, operation: Operation) => FetchResult,
+    mapFn: (
+      result: ApolloLink.Result,
+      operation: ApolloLink.Operation,
+    ) => ApolloLink.Result,
   ) {
     const interceptor = this.intercept(
       matcher,
@@ -496,7 +495,12 @@ export class Laika {
    * Useful in unit tests.
    * @param onRequest
    */
-  createLink(onRequest?: (operation: Operation, forward: NextLink) => void) {
+  createLink(
+    onRequest?: (
+      operation: ApolloLink.Operation,
+      forward: ApolloLink.ForwardFunction,
+    ) => void,
+  ) {
     return new ApolloLink((operation, forward) => {
       if (!forward) {
         throw new Error('LaikaLink cannot be used as a terminating link!')
@@ -512,7 +516,7 @@ export class Laika {
    * @internal
    */
   interceptor: InterceptorFn = (operation, forward) =>
-    new Observable<FetchResult>((observer) => {
+    new Observable<ApolloLink.Result>((observer) => {
       // we're subscribed, e.g. a component with useQuery was mounted or a refetch was requested
       operation.setContext({
         subscribeTime: Date.now(),
@@ -631,9 +635,9 @@ export class Laika {
   private getLogFunction({
     operation,
   }: {
-    operation: Operation
-    forward: NextLink
-  }): (result: FetchResult) => FetchResult {
+    operation: ApolloLink.Operation
+    forward: ApolloLink.ForwardFunction
+  }): (result: ApolloLink.Result) => ApolloLink.Result {
     return (result) => {
       if (!this.loggingMatcher(operation)) return result
 
@@ -903,7 +907,7 @@ export declare abstract class InterceptApi {
    * This translates to whenever a query/mutation is run, or whenever the *next* subscription is made.
    */
   waitForNextSubscription(): Promise<{
-    operation: Operation
+    operation: ApolloLink.Operation
     // observer: Observer<FetchResult>
   }>
   /**

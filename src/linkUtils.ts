@@ -1,5 +1,5 @@
 import isMatch from 'lodash/isMatch'
-import type { Operation } from '@apollo/client/core'
+import type { ApolloLink } from '@apollo/client/core'
 import type {
   Matcher,
   MatcherFn,
@@ -12,7 +12,7 @@ export const getMatcherFn = (matcher?: Matcher | undefined) =>
     ? matcher
     : typeof matcher === 'undefined'
     ? () => true
-    : (operation: Operation) => {
+    : (operation: ApolloLink.Operation) => {
         const operationContext = operation.getContext()
         if (
           matcher.clientName &&

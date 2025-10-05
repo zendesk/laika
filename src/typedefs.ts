@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type {
-  ApolloLink,
-  Observable,
-  // ObservableSubscription
-} from '@apollo/client/core'
+import type { ApolloLink, Observable } from '@apollo/client/core'
 import type { Laika } from './laika'
 
 interface SubscriptionObserver<T> {
@@ -13,60 +9,56 @@ interface SubscriptionObserver<T> {
   complete: () => void
 }
 
-export type Operation = ApolloLink.Operation
-export type FetchResult = ApolloLink.Result
-export type NextLink = ApolloLink.ForwardFunction
-// export type ObservableSubscription = ApolloLink.
-
 // /** @ignore */
 // export type { NextLink } from '@apollo/client/core'
 /** @ignore */
-export type Variables = Operation['variables']
+export type Variables = ApolloLink.Operation['variables']
 /** @ignore */
-export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
+export type FetchResultSubscriptionObserver =
+  SubscriptionObserver<ApolloLink.Result>
 /** @ignore */
 // export type Subscription = ObservableSubscription
 
 export type OnSubscribeCallback = (options: {
-  operation: Operation
+  operation: ApolloLink.Operation
   observer: FetchResultSubscriptionObserver
   removeCallback: () => void
 }) => (() => void) | void
 
 export type OperationObserverCallback = (
-  operation: Operation,
+  operation: ApolloLink.Operation,
   observer: FetchResultSubscriptionObserver,
 ) => void
 
 export interface Result {
-  result?: FetchResult
+  result?: ApolloLink.Result
   error?: Error
 }
 
-export type ResultFn = (operation: Operation) => Result
+export type ResultFn = (operation: ApolloLink.Operation) => Result
 export type ResultOrFn = Result | ResultFn
 
 export interface SubscribeMeta {
-  operation: Operation
+  operation: ApolloLink.Operation
   observer: FetchResultSubscriptionObserver
-  forward: NextLink
+  forward: ApolloLink.ForwardFunction
   enablePassthrough: PassthroughEnableFn
   disablePassthrough: PassthroughDisableFn
 }
 
 export type InterceptorFn = (
-  operation: Operation,
-  forward: NextLink,
-) => Observable<FetchResult>
+  operation: ApolloLink.Operation,
+  forward: ApolloLink.ForwardFunction,
+) => Observable<ApolloLink.Result>
 
 export type ManInTheMiddleFn = (
   options: SubscribeMeta,
-) => Observable<FetchResult>
+) => Observable<ApolloLink.Result>
 
 export type PassthroughDisableFn = () => boolean
 export type PassthroughEnableFn = (mitm?: ManInTheMiddleFn) => boolean
 export type OnSubscribe = (options: SubscribeMeta) => () => void
-export type MatcherFn = (operation: Operation) => boolean
+export type MatcherFn = (operation: ApolloLink.Operation) => boolean
 export interface Behavior {
   matcher: MatcherFn
   onSubscribe: OnSubscribe
@@ -98,7 +90,7 @@ export interface RecordingPoint {
   feature?: string
   variables: Variables
   type: 'push' | 'response:mutation' | 'response:query'
-  result: FetchResult
+  result: ApolloLink.Result
   action: string
 }
 
