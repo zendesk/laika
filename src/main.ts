@@ -19,7 +19,6 @@ export type {
   MatcherObject,
   OnSubscribe,
   OnSubscribeCallback,
-  // Operation,
   OperationObserverCallback,
   PassthroughDisableFn,
   PassthroughEnableFn,
@@ -34,6 +33,5 @@ export type {
   ResultFn,
   ResultOrFn,
   SubscribeMeta,
-  // Subscription,
   Variables,
 } from './typedefs'

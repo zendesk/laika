@@ -10,14 +10,12 @@ interface SubscriptionObserver<T> {
 }
 
 // /** @ignore */
-// export type { NextLink } from '@apollo/client/core'
 /** @ignore */
 export type Variables = ApolloLink.Operation['variables']
 /** @ignore */
 export type FetchResultSubscriptionObserver =
   SubscriptionObserver<ApolloLink.Result>
 /** @ignore */
-// export type Subscription = ObservableSubscription
 
 export type OnSubscribeCallback = (options: {
   operation: ApolloLink.Operation
