@@ -1,5 +1,6 @@
+/* eslint-disable no-await-in-loop */
 import gql from 'graphql-tag'
-import { firstValueFrom, lastValueFrom, Observer, of, take } from 'rxjs'
+import { firstValueFrom, Observer, of, take } from 'rxjs'
 import {
   ApolloClient,
   ApolloLink,
@@ -45,8 +46,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('Laika', () => {
+describe('Laika', () => {
   it('returns passthrough data from the following link', async () => {
     const laika = new Laika({
       referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
@@ -58,7 +58,7 @@ describe.skip('Laika', () => {
 
     const link = ApolloLink.from([interceptionLink, backendStub])
 
-    const result = await lastValueFrom(execute(link, { query }, { client }))
+    const result = await firstValueFrom(execute(link, { query }, { client }))
 
     expect(result).toEqual(data)
     expect(backendStubSpy).toHaveBeenCalledTimes(1)
@@ -79,7 +79,7 @@ describe.skip('Laika', () => {
       interceptor.mockResultOnce({
         result: mockData,
       })
-      const result = await lastValueFrom(execute(link, { query }, { client }))
+      const result = await firstValueFrom(execute(link, { query }, { client }))
       expect(result).toEqual(mockData)
       expect(backendStubSpy).toHaveBeenCalledTimes(0)
     })
@@ -103,11 +103,10 @@ describe.skip('Laika', () => {
 
         const observable = execute(link, { query }, { client }).pipe(take(2))
 
-        // eslint-disable-next-line no-await-in-loop
-        const [mockedResult, unmockedResult] = await Promise.all([
-          firstValueFrom(observable),
-          lastValueFrom(observable),
-        ])
+        // First access is intercepted
+        const mockedResult = await firstValueFrom(observable)
+        // Second access is passed through
+        const unmockedResult = await firstValueFrom(observable)
 
         expect(mockedResult).toEqual(mockData)
         expect(unmockedResult).toEqual(data)
@@ -128,7 +127,7 @@ describe.skip('Laika', () => {
 
       const interceptor = laika.intercept()
 
-      // testing that this will get pushed immediately
+      // Test that this will get pushed immediately
       interceptor.mockResultOnce(mockedResultFn)
 
       const observer = {
@@ -254,21 +253,23 @@ describe.skip('Laika', () => {
         interceptor.mockResultOnce({
           result: mockData,
         })
-        const [helloResult, goodbyeResult] = await Promise.all([
-          lastValueFrom(execute(link, { query }, { client })),
-          lastValueFrom(
-            execute(
-              link,
-              {
-                query: goodbyeQuery,
-                variables: { type: 'goodbye' },
-              },
-              { client },
-            ),
-          ),
-        ])
+        const helloResult = await firstValueFrom(
+          execute(link, { query }, { client }),
+        )
         expect(helloResult).toEqual(data)
+
+        const goodbyeResult = await firstValueFrom(
+          execute(
+            link,
+            {
+              query: goodbyeQuery,
+              variables: { type: 'goodbye' },
+            },
+            { client },
+          ),
+        )
         expect(goodbyeResult).toEqual(mockData)
+
         expect(backendStubSpy).toHaveBeenCalledTimes(1)
       },
     )
@@ -315,13 +316,17 @@ describe.skip('Laika', () => {
       const backendStubSpy = jest.spyOn(backendStub, 'request')
       const link = ApolloLink.from([interceptionLink, backendStub])
       const observable = execute(link, { query }, { client })
-      const [result1, result2, result3] = await Promise.all([
-        lastValueFrom(observable),
-        lastValueFrom(observable),
-        lastValueFrom(observable),
-      ])
+
+      // First query returns first error mock
+      const result1 = await firstValueFrom(observable)
       expect(result1).toEqual(standardError)
+
+      // Second query returns second error mock
+      const result2 = await firstValueFrom(observable)
       expect(result2).toEqual(standardError)
+
+      // Third query returns data mock
+      const result3 = await firstValueFrom(observable)
       expect(result3).toEqual(data)
       expect(backendStubSpy).toHaveBeenCalledTimes(3)
     })

@@ -1,6 +1,5 @@
 import gql from 'graphql-tag'
-import { of, Subscriber } from 'rxjs'
-import waitFor from 'wait-for-observables'
+import { firstValueFrom, of, Subscriber } from 'rxjs'
 import {
   ApolloClient,
   ApolloLink,
@@ -9,7 +8,7 @@ import {
   Observable,
 } from '@apollo/client/core'
 import { createLazyLoadableLink } from './createLazyLoadableLink'
-import { onNextTick, WaitForResult } from './testUtils'
+import { onNextTick } from './testUtils'
 
 const query = gql`
   query helloQuery {
@@ -39,11 +38,8 @@ describe('createLazyLoadableLink', () => {
     const link = createLazyLoadableLink(
       Promise.resolve(new ApolloLink(() => of(data))),
     )
-    const [result] = (await waitFor(
-      execute(link, { query }, { client }),
-    )) as WaitForResult<typeof data>
-    const { values } = result!
-    expect(values).toEqual([data])
+    const result = await firstValueFrom(execute(link, { query }, { client }))
+    expect(result).toEqual(data)
   })
 
   it('correctly emits subsequent values from the following link and completes the returned Observable when the Observable returned from the lazily loaded link completes', async () => {

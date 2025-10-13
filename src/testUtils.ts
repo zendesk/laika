@@ -12,8 +12,3 @@ export const onNextTick = <Output, T extends (...args: any) => Output>(
       }
     }),
   )
-
-export type WaitForResult<T> = {
-  values?: T[]
-  error?: unknown
-}[]
