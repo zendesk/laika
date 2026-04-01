@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "sync:homepage": "node ./scripts/sync-homepage-from-readme.mjs",
-    "start": "yarn sync:homepage && TYPEDOC_WATCH=true docusaurus start",
-    "build": "yarn sync:homepage && docusaurus build --out-dir ./build",
+    "prepare:typedoc": "node ./scripts/ensure-root-install.mjs",
+    "sync:docs-content": "node ./scripts/sync-docs-content.mjs",
+    "start": "yarn prepare:typedoc && yarn sync:docs-content && TYPEDOC_WATCH=true docusaurus start",
+    "build": "yarn prepare:typedoc && yarn sync:docs-content && docusaurus build --out-dir ./build",
     "swizzle": "docusaurus swizzle",
-    "deploy": "yarn sync:homepage && docusaurus deploy",
+    "deploy": "yarn prepare:typedoc && yarn sync:docs-content && docusaurus deploy",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "postinstallDev": "true"

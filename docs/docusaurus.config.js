@@ -26,7 +26,7 @@ module.exports = {
       },
       items: [
         {
-          to: 'docs/api/',
+          to: 'docs/',
           activeBasePath: 'docs',
           label: 'Docs',
           position: 'left',

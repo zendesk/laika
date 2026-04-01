@@ -8,13 +8,19 @@ hide_title: true
 
 # Usage in Playwright
 
-If your app runs GraphQL operations during the initial render, waiting for `window.laika` after `page.goto()` is too late. Register your Laika setup before the page loads so the interceptors exist before the first query or mutation starts.
+Use Playwright when you want the real browser runtime but still need direct control over GraphQL traffic. The key constraint is timing: if the app fires queries during the initial render, setup after `page.goto()` is already too late.
+
+## Make sure the app actually enables Laika
+
+If your app only loads Laika behind a query parameter or a test flag, navigate with that flag enabled.
+
+For patterns such as `?laika=1` or `?e2e=true`, see [Conditionally loading Laika](pathname:///docs/loading-laika-conditionally).
 
 ## Install interceptors before navigation
 
 Use `page.addInitScript()` or `browserContext.addInitScript()` to register callbacks on `window.laikaReadyCallbacks`.
 
-Laika will run every callback in that array when `createGlobalLaikaLink()` or `createLazyLoadableLaikaLink()` creates the global singleton.
+Laika runs every callback in that array when `createGlobalLaikaLink()` or `createLazyLoadableLaikaLink()` creates the global singleton.
 
 ```ts
 import { expect, test } from '@playwright/test'
@@ -53,7 +59,7 @@ test.afterEach(async ({ page }) => {
 })
 
 test('shows mocked data from the first query', async ({ page }) => {
-  await page.goto('http://localhost:4200/login')
+  await page.goto('http://localhost:4200/login?laika=1')
 
   await expect(page.getByText('Mouse')).toBeVisible()
 })
@@ -61,9 +67,9 @@ test('shows mocked data from the first query', async ({ page }) => {
 
 This keeps the mocking logic in the test harness instead of moving it into the application through `onLaikaReady`.
 
-## Update mocks later in the test
+## Update mocks after the page has loaded
 
-Store the interceptor on `window` if you want to change the response after the page has loaded:
+If you store interceptors on `window`, you can reconfigure them later in the same test:
 
 ```ts
 await page.evaluate(
@@ -79,6 +85,31 @@ await page.evaluate(
   },
 )
 ```
+
+## Assert which variables were used
+
+Each interceptor keeps a `calls` array with every set of variables that matched it:
+
+```ts
+const calls = await page.evaluate(() => {
+  return window.__laikaTestState.getDataInterceptor.calls
+})
+
+expect(calls).toEqual([{ page: 1 }])
+```
+
+## When waiting for `window.laika` is enough
+
+If you do not need to affect requests fired during app boot, a simpler pattern is fine:
+
+```ts
+await page.goto('http://localhost:4200/login?laika=1')
+await page.waitForFunction(() => Boolean(window.laika))
+```
+
+From there you can create interceptors through `page.evaluate()` or `page.evaluateHandle()`.
+
+For initial requests, keep using `addInitScript()` and ready callbacks.
 
 ## Custom global property names
 

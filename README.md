@@ -25,8 +25,12 @@ Read the Medium article about Laika: [Mock GraphQL Subscriptions with Laika — 
 
 - Peer support: `@apollo/client` `>=3.2.5 <5`, `graphql` `^15 || ^16`, and `rxjs` `^7.3.0` for Apollo Client 4.x projects
 - [How to install](https://zendesk.github.io/laika/docs/how-to-install)
+- [Conditionally loading Laika](https://zendesk.github.io/laika/docs/loading-laika-conditionally)
+- [Testing approach](https://zendesk.github.io/laika/docs/testing-approach)
 - [Usage in Playwright](https://zendesk.github.io/laika/docs/usage-in-playwright)
+- [Usage in Jest / Vitest](https://zendesk.github.io/laika/docs/usage-in-jest-vitest)
 - [Usage in Cypress](https://zendesk.github.io/laika/docs/usage-in-cypress)
+- [Advanced usage](https://zendesk.github.io/laika/docs/advanced-usage)
 - [Resetting Between Tests](https://zendesk.github.io/laika/docs/resetting-between-tests)
 - [Logging and recording](https://zendesk.github.io/laika/docs/logging-and-recording)
 - [Pitfalls](https://zendesk.github.io/laika/docs/pitfalls)

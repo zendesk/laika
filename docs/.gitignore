@@ -8,6 +8,7 @@
 .docusaurus
 .cache-loader
 /docs/api
+/static/readme-media
 /typedoc-sidebar.js
 
 # Misc
