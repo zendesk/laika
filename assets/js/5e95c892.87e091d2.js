@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunk_zendesk_laika_docs=globalThis.webpackChunk_zendesk_laika_docs||[]).push([[9647],{7121(e,s,a){a.r(s),a.d(s,{default:()=>i});a(6540);var r=a(4164),c=a(7559),l=a(5500),d=a(8060),n=a(1656),u=a(4848);function i(e){return(0,u.jsx)(l.e3,{className:(0,r.A)(c.G.wrapper.docsPages),children:(0,u.jsx)(n.A,{children:(0,d.v)(e.route.routes)})})}}}]);
