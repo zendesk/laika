@@ -9,6 +9,7 @@ module.exports = {
         'how-to-install',
         'api/Laika/index',
         'usage-in-cypress',
+        'resetting-between-tests',
         'logging-and-recording',
         'pitfalls',
       ],

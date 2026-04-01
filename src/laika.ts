@@ -354,9 +354,12 @@ export class Laika {
       onSubscribe,
     }
 
+    let restoreIntercept: () => void = noop
+
     const ensureBehaviorRegistered = () => {
       // any queries made from now on will be matched against this behavior:
       this.behaviors.add(behavior)
+      this.interceptRestoreFns.add(restoreIntercept)
 
       // but there might be currently subscribed operations, we want to take over those too:
       this.unmatchedOperationOptions.forEach((subscribeMeta) => {
@@ -366,8 +369,6 @@ export class Laika {
         this.cleanupFnPerSubscribeMeta.set(subscribeMeta, cleanup)
       })
     }
-
-    ensureBehaviorRegistered()
 
     const enablePassthroughInAllObservers: PassthroughEnableFn = (mitm) => {
       if (!passthroughFallbackAllowed) return false
@@ -385,6 +386,30 @@ export class Laika {
       )
       return successList.some(Boolean)
     }
+
+    const resetIntercept = () => {
+      resultFnLimitedSet.clear()
+      resultFnPersistentSet.clear()
+      onSubscribeCallbacks.clear()
+      calledWithVariables.length = 0
+      passthroughFallbackAllowed = true
+      passthrough = connectFutureLinksOrMitmFn
+      if (passthrough) {
+        enablePassthroughInAllObservers(
+          typeof passthrough === 'function' ? passthrough : undefined,
+        )
+      }
+      ensureBehaviorRegistered()
+    }
+
+    restoreIntercept = () => {
+      resetIntercept()
+      enablePassthroughInAllObservers()
+      this.behaviors.delete(behavior)
+      this.interceptRestoreFns.delete(restoreIntercept)
+    }
+
+    ensureBehaviorRegistered()
 
     // format of result should be the same as 'result' described here https://www.apollographql.com/docs/react/development-testing/testing/#defining-mocked-responses
 
@@ -491,25 +516,10 @@ export class Laika {
         passthroughFallbackAllowed = true
       },
       mockReset() {
-        resultFnLimitedSet.clear()
-        resultFnPersistentSet.clear()
-        onSubscribeCallbacks.clear()
-        calledWithVariables.length = 0
-        passthroughFallbackAllowed = true
-        passthrough = connectFutureLinksOrMitmFn
-        if (passthrough) {
-          enablePassthroughInAllObservers(
-            typeof passthrough === 'function' ? passthrough : undefined,
-          )
-        }
-        ensureBehaviorRegistered()
+        resetIntercept()
         return interceptApi
       },
-      mockRestore: () => {
-        interceptApi.mockReset()
-        enablePassthroughInAllObservers()
-        this.behaviors.delete(behavior)
-      },
+      mockRestore: restoreIntercept,
     }
     return interceptApi
   }
@@ -531,6 +541,20 @@ export class Laika {
     return {
       restore: interceptor.mockRestore,
     }
+  }
+
+  /**
+   * Removes every intercept created by this {@link Laika | Laika} instance.
+   * Useful in `afterEach` hooks to keep browser and component tests isolated.
+   *
+   * Restoring intercepts re-enables passthrough for active observers, but existing
+   * Apollo subscriptions may still need to be remounted by the test harness before
+   * they can be intercepted again with a different scenario.
+   */
+  mockRestoreAll() {
+    ;[...this.interceptRestoreFns].forEach((restoreIntercept) => {
+      restoreIntercept()
+    })
   }
 
   // logging API - for documentation see end of file
@@ -725,6 +749,8 @@ export class Laika {
   // interceptor-related properties:
 
   private readonly behaviors: Set<Behavior> = new Set()
+
+  private readonly interceptRestoreFns: Set<() => void> = new Set()
 
   private readonly unmatchedOperationOptions: Set<SubscribeMeta> = new Set()
 

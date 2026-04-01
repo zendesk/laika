@@ -82,6 +82,10 @@ const laika = new Laika()
 
 const link = from([laika.createLink(), new HttpLink({ uri: '...' })])
 
+afterEach(() => {
+  laika.mockRestoreAll()
+})
+
 it('works', () => {
   // setup your test, for example:
   const interceptor = laika.intercept()
@@ -98,6 +102,8 @@ it('works', () => {
 ```
 
 Note that Laika itself isn't directly exported from `@zendesk/laika` in order to minimize the amount of data that is bundled with your application when using lazily loaded Laika in production.
+
+If your test runner reuses the same page or process across tests, call `laika.mockRestoreAll()` in `afterEach` to clear all interceptors before the next scenario starts. See [Resetting Between Tests](pathname:///docs/resetting-between-tests).
 
 ## What can I import from the module?
 

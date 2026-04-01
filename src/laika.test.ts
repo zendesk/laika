@@ -409,6 +409,44 @@ describe('Laika', () => {
         },
       )
     })
+
+    it('mockRestoreAll removes stale interceptors so the same operation can be mocked again', async () => {
+      const laika = new Laika({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
+      const interceptionLink = laika.createLink()
+
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
+
+      const firstInterceptor = laika.intercept({ operationName: 'helloQuery' })
+      firstInterceptor.mockResult({
+        result: mockData,
+      })
+
+      const [firstResult] = (await waitFor(
+        executeLink(link, { query }),
+      )) as WaitForResult<unknown>
+      expect(firstResult!.values).toEqual([mockData])
+
+      laika.mockRestoreAll()
+
+      const secondInterceptor = laika.intercept({ operationName: 'helloQuery' })
+      secondInterceptor.mockResultOnce({
+        result: mockDataImmediate,
+      })
+
+      const [secondResult] = (await waitFor(
+        executeLink(link, { query }),
+      )) as WaitForResult<unknown>
+
+      expect(firstInterceptor.calls).toHaveLength(0)
+      expect(secondResult!.values).toEqual([mockDataImmediate])
+      expect(backendStub).toHaveBeenCalledTimes(0)
+    })
   })
 
   it('calls unsubscribe on the appropriate downstream observable', async () => {

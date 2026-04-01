@@ -54,6 +54,22 @@ describe('My suite', () => {
 })
 ```
 
+## Reset Laika after each test
+
+If Cypress keeps the same page alive between tests, clear Laika's interceptors in `afterEach`:
+
+```ts
+afterEach(() => {
+  cy.window()
+    .its('laika')
+    .then((laika) => {
+      laika.mockRestoreAll()
+    })
+})
+```
+
+This prevents interceptors from one test from matching operations in the next one. For Jest and Playwright examples as well, see [Resetting Between Tests](pathname:///docs/resetting-between-tests).
+
 ## Pitfall: Data that comes outside of Apollo
 
 With all the ease that [recording and code generation](logging-and-recording.md) gives,
