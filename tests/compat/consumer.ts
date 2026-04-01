@@ -1,5 +1,11 @@
-import { ApolloLink, Observable, gql } from '@apollo/client/core'
-import type { FetchResult, Operation } from '@apollo/client/core'
+import {
+  ApolloLink,
+  Observable,
+  gql,
+  type FetchResult,
+  type Operation,
+  type TypedDocumentNode,
+} from '@apollo/client/core'
 import {
   createLazyLoadableLink,
   type CreateLaikaLinkOptions,
@@ -64,4 +70,72 @@ const query = gql`
   }
 `
 
-void [link, observer, options, query]
+type HelloQueryData = {
+  sample: {
+    id: string
+  }
+}
+
+type HelloQueryVariables = {
+  includeSample: boolean
+}
+
+const typedQuery = query as TypedDocumentNode<
+  HelloQueryData,
+  HelloQueryVariables
+>
+
+const explicitlyTypedIntercept = laika.intercept()
+explicitlyTypedIntercept.mockResult<HelloQueryData>({
+  result: {
+    data: {
+      sample: {
+        id: 'explicit',
+      },
+    },
+  },
+})
+
+laika.intercept<HelloQueryData>({ operationName: 'helloQuery' }).mockResult({
+  result: {
+    data: {
+      sample: {
+        id: 'explicit-on-intercept',
+      },
+    },
+  },
+})
+
+laika.intercept({ operation: typedQuery }).mockResult({
+  result: {
+    data: {
+      sample: {
+        id: 'inferred',
+      },
+    },
+  },
+})
+
+explicitlyTypedIntercept.mockResult<HelloQueryData>({
+  result: {
+    data: {
+      sample: {
+        // @ts-expect-error `id` must stay a string when an explicit result type is provided.
+        id: 1,
+      },
+    },
+  },
+})
+
+laika.intercept({ operation: typedQuery }).mockResult({
+  result: {
+    data: {
+      sample: {
+        // @ts-expect-error `id` must stay a string when inferred from a typed document.
+        id: 1,
+      },
+    },
+  },
+})
+
+void [link, observer, options, query, typedQuery]

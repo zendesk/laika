@@ -1,10 +1,12 @@
 import isMatch from 'lodash/isMatch'
 import type { Operation } from '@apollo/client/core'
+import { matchesOperationDocument } from './hasOperation'
 import type {
   Matcher,
   MatcherFn,
   OperationObserverCallback,
   Result,
+  Variables,
 } from './typedefs'
 
 export const getMatcherFn = (matcher?: Matcher | undefined) =>
@@ -14,6 +16,12 @@ export const getMatcherFn = (matcher?: Matcher | undefined) =>
     ? () => true
     : (operation: Operation) => {
         const operationContext = operation.getContext()
+        if (
+          matcher.operation &&
+          !matchesOperationDocument(operation.query, matcher.operation)
+        ) {
+          return false
+        }
         if (
           matcher.clientName &&
           matcher.clientName !== operationContext.clientName
@@ -40,7 +48,7 @@ export const getMatcherFn = (matcher?: Matcher | undefined) =>
 
 export const getEmitValueFn =
   (
-    result: Result,
+    result: Result<Variables>,
     matcher?: MatcherFn | undefined,
   ): OperationObserverCallback =>
   (operation, observer) => {

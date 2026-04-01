@@ -32,20 +32,28 @@ import type { GenerateCodeOptions } from './codeGenerator'
 import { generateCode } from './codeGenerator'
 import { LOGGING_DISABLED_MATCHER } from './constants'
 import { getLogStyle } from './getLogStyle'
-import { hasMutationOperation, hasSubscriptionOperation } from './hasOperation'
+import {
+  getOperationNameFromDocument,
+  hasMutationOperation,
+  hasSubscriptionOperation,
+} from './hasOperation'
 import { getEmitValueFn, getMatcherFn } from './linkUtils'
 import { mapObservable } from './observableUtils'
 import type {
   Behavior,
   EventFilterFn,
   FetchResultSubscriptionObserver,
+  InferResultData,
   InterceptorFn,
   ManInTheMiddleFn,
   Matcher,
   MatcherFn,
+  MatcherObject,
   NextLink,
+  NoInfer,
   OnSubscribe,
   OnSubscribeCallback,
+  OperationDocument,
   PassthroughDisableFn,
   PassthroughEnableFn,
   RecordingElement,
@@ -78,13 +86,13 @@ const emitMockedResult = ({
   completeAfterEmit,
   matcherFn,
 }: {
-  mockedResult: Result | PromiseLike<Result>
+  mockedResult: Result<Variables> | PromiseLike<Result<Variables>>
   operation: Operation
   observer: FetchResultSubscriptionObserver
   completeAfterEmit: boolean
   matcherFn?: MatcherFn | undefined
 }) => {
-  const emitResolvedResult = (resolvedResult: Result) => {
+  const emitResolvedResult = (resolvedResult: Result<Variables>) => {
     if (matcherFn && !matcherFn(operation)) {
       return
     }
@@ -109,7 +117,7 @@ const emitMockedResult = ({
     }
   }
 
-  if (isPromiseLike<Result>(mockedResult)) {
+  if (isPromiseLike<Result<Variables>>(mockedResult)) {
     void Promise.resolve(mockedResult)
       .then(emitResolvedResult)
       .catch((error: unknown) => {
@@ -172,23 +180,33 @@ export class Laika {
    * });
    * ```
    */
-  intercept(
+  intercept<TDocument extends OperationDocument<unknown, Variables>>(
+    matcher: MatcherObject & { operation: TDocument },
+    connectFutureLinksOrMitmFn?: (ManInTheMiddleFn | boolean) | undefined,
+    keepNonSubscriptionConnectionsOpen?: boolean,
+  ): InterceptApi<InferResultData<TDocument>>
+  intercept<TData = unknown>(
+    matcher?: Matcher | undefined,
+    connectFutureLinksOrMitmFn?: (ManInTheMiddleFn | boolean) | undefined,
+    keepNonSubscriptionConnectionsOpen?: boolean,
+  ): InterceptApi<TData>
+  intercept<TData = unknown>(
     matcher?: Matcher | undefined,
     connectFutureLinksOrMitmFn:
       | (ManInTheMiddleFn | boolean)
       | undefined = false,
     keepNonSubscriptionConnectionsOpen = false,
-  ): InterceptApi {
+  ): InterceptApi<TData> {
     const matcherFn: MatcherFn = getMatcherFn(matcher)
 
     const resultFnLimitedSet: Set<{
-      resultOrFn: ResultOrFn
+      resultOrFn: ResultOrFn<Variables>
       matcher: MatcherFn
       repeatTimes?: number
     }> = new Set()
 
     const resultFnPersistentSet: Set<{
-      resultOrFn: ResultOrFn
+      resultOrFn: ResultOrFn<Variables>
       matcher: MatcherFn
       repeatTimes?: number
     }> = new Set()
@@ -243,7 +261,10 @@ export class Laika {
         disablePassthrough()
       }
 
-      let mockedResult: Result | PromiseLike<Result> | undefined
+      let mockedResult:
+        | Result<Variables>
+        | PromiseLike<Result<Variables>>
+        | undefined
       for (const resultGroup of [
         ...resultFnLimitedSet,
         ...resultFnPersistentSet,
@@ -370,27 +391,36 @@ export class Laika {
     /**
      * See documentation of each function in {@link InterceptApi}
      */
-    const interceptApi: InterceptApi = {
+    const interceptApi: InterceptApi<TData> = {
       get calls() {
         return [...calledWithVariables]
       },
-      mockResult(resultOrFn: ResultOrFn, matcher?: Matcher | undefined) {
+      mockResult<TNextData = TData>(
+        resultOrFn: ResultOrFn<NoInfer<TNextData>>,
+        matcher?: Matcher | undefined,
+      ) {
         ensureBehaviorRegistered()
         disablePassthroughInAllObservers()
         const matcherFn = getMatcherFn(matcher)
-        resultFnPersistentSet.add({ resultOrFn, matcher: matcherFn })
-        return interceptApi
+        resultFnPersistentSet.add({
+          resultOrFn: resultOrFn as ResultOrFn<Variables>,
+          matcher: matcherFn,
+        })
+        return interceptApi as InterceptApi<TNextData>
       },
-      mockResultOnce(resultOrFn: ResultOrFn, matcher?: Matcher | undefined) {
+      mockResultOnce<TNextData = TData>(
+        resultOrFn: ResultOrFn<NoInfer<TNextData>>,
+        matcher?: Matcher | undefined,
+      ) {
         ensureBehaviorRegistered()
         disablePassthroughInAllObservers()
         const matcherFn = getMatcherFn(matcher)
         resultFnLimitedSet.add({
-          resultOrFn,
+          resultOrFn: resultOrFn as ResultOrFn<Variables>,
           matcher: matcherFn,
           repeatTimes: 1,
         })
-        return interceptApi
+        return interceptApi as InterceptApi<TNextData>
       },
       async waitForActiveSubscription() {
         ensureBehaviorRegistered()
@@ -406,12 +436,21 @@ export class Laika {
           })
         })
       },
-      fireSubscriptionUpdate(resultOrFn: ResultOrFn, fireMatcher?: Matcher) {
+      fireSubscriptionUpdate<TNextData = TData>(
+        resultOrFn: ResultOrFn<NoInfer<TNextData>>,
+        fireMatcher?: Matcher,
+      ) {
         ensureBehaviorRegistered()
         if (observerToOperationMap.size === 0) {
           const operationName =
             (typeof matcher === 'object' && matcher.operationName) ||
-            (typeof fireMatcher === 'object' && fireMatcher.operationName)
+            (typeof fireMatcher === 'object' && fireMatcher.operationName) ||
+            (typeof matcher === 'object' &&
+              matcher.operation &&
+              getOperationNameFromDocument(matcher.operation)) ||
+            (typeof fireMatcher === 'object' &&
+              fireMatcher.operation &&
+              getOperationNameFromDocument(fireMatcher.operation))
           throw new Error(
             `Cannot fire a subscription update, as there is nothing listening to ${
               operationName ? `'${operationName}'.` : 'this Apollo operation.'
@@ -426,14 +465,16 @@ export class Laika {
               : resultOrFn
 
           emitMockedResult({
-            mockedResult: result,
+            mockedResult: result as
+              | Result<Variables>
+              | PromiseLike<Result<Variables>>,
             operation,
             observer,
             completeAfterEmit: false,
             matcherFn: fireMatcherFn,
           })
         })
-        return interceptApi
+        return interceptApi as InterceptApi<TNextData>
       },
       onSubscribe(callback: OnSubscribeCallback) {
         ensureBehaviorRegistered()
@@ -885,7 +926,7 @@ export declare abstract class LogApi {
  *
  * Inspired by `jest.fn()`.
  */
-export declare abstract class InterceptApi {
+export declare abstract class InterceptApi<TData = unknown> {
   /** @ignore */
   constructor()
   /**
@@ -928,10 +969,10 @@ export declare abstract class InterceptApi {
    * );
    * ```
    */
-  mockResult(
-    resultOrFn: ResultOrFn,
+  mockResult<TNextData = TData>(
+    resultOrFn: ResultOrFn<NoInfer<TNextData>>,
     matcher?: Matcher | undefined,
-  ): InterceptApi
+  ): InterceptApi<TNextData>
   /**
    * Sets the mock data that will be used as the *next* response to matching intercepted queries/mutations.
    * If used for subscription operations, will immediately push provided data to the next matching request.
@@ -956,10 +997,10 @@ export declare abstract class InterceptApi {
    *   );
    * ```
    */
-  mockResultOnce(
-    resultOrFn: ResultOrFn,
+  mockResultOnce<TNextData = TData>(
+    resultOrFn: ResultOrFn<NoInfer<TNextData>>,
     matcher?: Matcher | undefined,
-  ): InterceptApi
+  ): InterceptApi<TNextData>
   /**
    * In case of GraphQL subscriptions, will return synchronously if at least
    * one intercepted subscription is already active.
@@ -1001,10 +1042,10 @@ export declare abstract class InterceptApi {
    * // e.g. assert the page shows "there are no active users currently on the page"
    * ```
    */
-  fireSubscriptionUpdate(
-    resultOrFn: ResultOrFn,
+  fireSubscriptionUpdate<TNextData = TData>(
+    resultOrFn: ResultOrFn<NoInfer<TNextData>>,
     fireMatcher?: Matcher,
-  ): InterceptApi
+  ): InterceptApi<TNextData>
   /**
    * Add a callback that will fire every time a component connects to the query (i.e. mounts).
    * You may return a clean-up function which will be run when the query disconnects.
@@ -1032,7 +1073,7 @@ export declare abstract class InterceptApi {
   /**
    * Resets the mock configuration to its initial state and reenables the intercept if disabled by {@link InterceptApi.mockRestore `mockRestore()`}.
    */
-  mockReset(): InterceptApi
+  mockReset(): InterceptApi<TData>
   /**
    * Removes the intercept completely and re-establishes connectivity in current and _future_ intercepted operations.
    * Note the word _future_. Any connections that were established prior to running this command,

@@ -371,6 +371,7 @@ describe('Laika', () => {
     describe('intercept with a matcher', () => {
       it.each([
         ['MatcherObject (operationName)', { operationName: 'goodbyeQuery' }],
+        ['MatcherObject (operation)', { operation: goodbyeQuery }],
         ['MatcherObject (variables)', { variables: { type: 'goodbye' } }],
         [
           'MatcherFn',
