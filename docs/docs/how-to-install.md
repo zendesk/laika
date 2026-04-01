@@ -71,6 +71,12 @@ export const createLazyLoadableLaikaLink = (options) =>
 
 If you're using webpack, the `webpackChunkName` magic comment will ensure a separate chunk is file created for the link.
 
+## Browser E2E runners
+
+When you need to intercept requests that fire during the initial page render, register callbacks on `window.laikaReadyCallbacks` before the app code executes.
+
+For a complete Playwright example using `page.addInitScript`, see [Usage in Playwright](pathname:///docs/usage-in-playwright).
+
 ## Loading the Link in unit tests
 
 If you have full control over the Apollo client inside of your tests, you may directly create the Link from an instance of Laika:
@@ -111,4 +117,4 @@ See the [API reference](pathname:///docs/api).
 
 ## What next?
 
-Read about how to use the library in [Laika](pathname:///docs/api/interfaces/Laika).
+Read about how to use the library in [Laika](pathname:///docs/api/Laika/classes/Laika).

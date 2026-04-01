@@ -15,6 +15,7 @@ yarn start
 ```
 
 This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
+The homepage content is generated from the repository root `README.md` before the site starts or builds.
 
 ## Build
 

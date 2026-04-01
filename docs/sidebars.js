@@ -7,6 +7,7 @@ module.exports = {
       items: [
         'api/index',
         'how-to-install',
+        'usage-in-playwright',
         'api/Laika/index',
         'usage-in-cypress',
         'resetting-between-tests',

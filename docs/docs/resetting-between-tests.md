@@ -93,6 +93,8 @@ test.afterEach(async ({ page }) => {
 
 If your app lazy-loads Laika, make sure the page has already created `window.laika` before you try to use it.
 
+If you need to install interceptors before the first request runs, register `window.laikaReadyCallbacks` with `page.addInitScript()` before `page.goto()`. See [Usage in Playwright](pathname:///docs/usage-in-playwright).
+
 ## Cypress
 
 In Cypress, keep using `cy.then()` / `cy.window()` so cleanup runs in command order:
