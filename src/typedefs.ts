@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FetchResult, Observable, Operation } from '@apollo/client/core'
+import type { DocumentNode } from 'graphql'
+import type {
+  FetchResult,
+  Observable,
+  Operation,
+  TypedDocumentNode,
+} from '@apollo/client/core'
 import type { Laika } from './laika'
 
 interface SubscriptionObserver<T> {
@@ -13,6 +19,19 @@ interface SubscriptionObserver<T> {
 export type { FetchResult, Operation } from '@apollo/client/core'
 /** @ignore */
 export type Variables = Operation['variables']
+/** @ignore */
+export type NoInfer<T> = [T][T extends T ? 0 : never]
+/** @ignore */
+export type OperationDocument<TData = unknown, TVariables = Variables> =
+  | DocumentNode
+  | TypedDocumentNode<TData, TVariables>
+/** @ignore */
+export type InferResultData<TDocument> = TDocument extends TypedDocumentNode<
+  infer TData,
+  any
+>
+  ? TData
+  : unknown
 /** @ignore */
 export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
 /** @ignore */
@@ -34,15 +53,17 @@ export type OperationObserverCallback = (
   observer: FetchResultSubscriptionObserver,
 ) => void
 
-export interface Result {
-  result?: FetchResult
+export interface Result<TData = unknown> {
+  result?: FetchResult<TData>
   error?: Error
   /** Delay the mocked emission by this many milliseconds. */
   delay?: number
 }
 
-export type ResultFn = (operation: Operation) => Result | PromiseLike<Result>
-export type ResultOrFn = Result | ResultFn
+export type ResultFn<TData = unknown> = (
+  operation: Operation,
+) => Result<TData> | PromiseLike<Result<TData>>
+export type ResultOrFn<TData = unknown> = Result<TData> | ResultFn<TData>
 
 export interface SubscribeMeta {
   operation: Operation
@@ -75,6 +96,7 @@ export interface MatcherObject {
   clientName?: string
   feature?: string
   variables?: Variables
+  operation?: OperationDocument
 }
 
 /**
