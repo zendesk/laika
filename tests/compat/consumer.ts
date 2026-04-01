@@ -19,7 +19,7 @@ const forward: NextLink = (operation) =>
     observer.complete?.()
   })
 
-const resultFn: ResultFn = (operation) => ({
+const resultFn: ResultFn = async (operation) => ({
   result: { data: { operationName: operation.operationName } },
 })
 
@@ -43,6 +43,7 @@ const intercept = laika.intercept(matcher)
 
 intercept
   .mockResultOnce(resultFn)
+  .mockResult({ result: { data: { delayed: true } }, delay: 1 })
   .onSubscribe(({ observer: activeObserver }) => {
     activeObserver.next?.({ data: { ready: true } })
   })

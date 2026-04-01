@@ -63,6 +63,68 @@ const CONSOLE_TYPE_PADDING = 26
 const CONSOLE_TIME_SINCE_PADDING = 5
 const ONE_SECOND_IN_MS = 1_000
 
+const isPromiseLike = <T>(value: unknown): value is PromiseLike<T> =>
+  !!value &&
+  (typeof value === 'object' || typeof value === 'function') &&
+  typeof (value as PromiseLike<T>).then === 'function'
+
+const toError = (error: unknown) =>
+  error instanceof Error ? error : new Error(String(error))
+
+const emitMockedResult = ({
+  mockedResult,
+  operation,
+  observer,
+  completeAfterEmit,
+  matcherFn,
+}: {
+  mockedResult: Result | PromiseLike<Result>
+  operation: Operation
+  observer: FetchResultSubscriptionObserver
+  completeAfterEmit: boolean
+  matcherFn?: MatcherFn | undefined
+}) => {
+  const emitResolvedResult = (resolvedResult: Result) => {
+    if (matcherFn && !matcherFn(operation)) {
+      return
+    }
+
+    const emit = () => {
+      if (observer.closed) {
+        return
+      }
+
+      const emitValue = getEmitValueFn(resolvedResult)
+      emitValue(operation, observer)
+
+      if (completeAfterEmit && !observer.closed) {
+        observer.complete?.()
+      }
+    }
+
+    if (resolvedResult.delay && resolvedResult.delay > 0) {
+      setTimeout(emit, resolvedResult.delay)
+    } else {
+      emit()
+    }
+  }
+
+  if (isPromiseLike<Result>(mockedResult)) {
+    void Promise.resolve(mockedResult)
+      .then(emitResolvedResult)
+      .catch((error: unknown) => {
+        if (observer.closed) {
+          return
+        }
+
+        observer.error?.(toError(error))
+      })
+    return
+  }
+
+  emitResolvedResult(mockedResult)
+}
+
 /**
  * Class responsible for managing interceptions.
  * By default a singleton is installed on `globalThis` (usually `window`) under `laika`.
@@ -181,7 +243,7 @@ export class Laika {
         disablePassthrough()
       }
 
-      let mockedResult: Result | undefined
+      let mockedResult: Result | PromiseLike<Result> | undefined
       for (const resultGroup of [
         ...resultFnLimitedSet,
         ...resultFnPersistentSet,
@@ -206,15 +268,13 @@ export class Laika {
 
       const queryIncludesSubscription = hasSubscriptionOperation(operation)
       if (mockedResult) {
-        const emitValue = getEmitValueFn(mockedResult)
-        emitValue(operation, observer)
-        if (
-          !queryIncludesSubscription &&
-          !observer.closed &&
-          !keepNonSubscriptionConnectionsOpen
-        ) {
-          observer.complete?.()
-        }
+        emitMockedResult({
+          mockedResult,
+          operation,
+          observer,
+          completeAfterEmit:
+            !queryIncludesSubscription && !keepNonSubscriptionConnectionsOpen,
+        })
       } else if (
         !passthrough &&
         !queryIncludesSubscription &&
@@ -358,13 +418,20 @@ export class Laika {
             }`,
           )
         }
+        const fireMatcherFn = getMatcherFn(fireMatcher)
         observerToOperationMap.forEach((operation, observer) => {
           const result =
             typeof resultOrFn === 'function'
               ? resultOrFn(operation)
               : resultOrFn
-          const emitValue = getEmitValueFn(result, getMatcherFn(fireMatcher))
-          emitValue(operation, observer)
+
+          emitMockedResult({
+            mockedResult: result,
+            operation,
+            observer,
+            completeAfterEmit: false,
+            matcherFn: fireMatcherFn,
+          })
         })
         return interceptApi
       },
@@ -833,7 +900,7 @@ export declare abstract class InterceptApi {
    *
    * Similar to `jest.fn().mockReturnValue(...)`.
    *
-   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}, delay?: number}`. Can be a function that takes operation as the first argument and returns that object synchronously or asynchronously. This may be useful when you wish to customize the mocked response based on the variables from the query.
    * @param matcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Always respond with the mock to all queries/mutations intercepted
@@ -873,7 +940,7 @@ export declare abstract class InterceptApi {
    *
    * Can be run multiple times and will send responses in order in which `mockResultOnce` was called.
    *
-   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}, delay?: number}`. Can be a function that takes operation as the first argument and returns that object synchronously or asynchronously. This may be useful when you wish to customize the mocked response based on the variables from the query.
    * @param matcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Respond with the mock to the first intercepted operation with the name `getUsers`,
@@ -917,7 +984,7 @@ export declare abstract class InterceptApi {
    * Combine with {@link InterceptApi.waitForActiveSubscription | `waitForActiveSubscription()`}
    * to ensure a subscription is active before calling.
    *
-   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}, delay?: number}`. Can be a function that takes operation as the first argument and returns that object synchronously or asynchronously. This may be useful when you wish to customize the mocked response based on the variables from the query.
    * @param fireMatcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Push new information to a live feed:
