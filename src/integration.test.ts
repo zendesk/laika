@@ -155,6 +155,26 @@ describe('Apollo Client integration', () => {
     )
   })
 
+  it('mockRestoreAll removes modifyRemote interceptors', async () => {
+    const [laika, client] = setup()
+
+    laika.modifyRemote({ operationName: 'sampleQuery' }, (result) => ({
+      ...result,
+      data: {
+        ...result.data,
+        sample: 'modified',
+      },
+    }))
+
+    await expect(client.query({ query })).resolves.toMatchObject({
+      data: { sample: 'modified' },
+    })
+
+    laika.mockRestoreAll()
+
+    await expect(client.query({ query })).resolves.toMatchObject(realData)
+  })
+
   it('pushes subscription updates and errors', async () => {
     const [laika, client] = setup()
 

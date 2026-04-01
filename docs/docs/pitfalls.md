@@ -47,3 +47,5 @@ Since we haven't configured any behavior for this interceptor, it will passthrou
 the request to the backend.
 
 However if you'd reverse the order of creation of each intercept, this would work correctly.
+
+Interceptors also keep their order across tests until you restore them. If your test runner reuses the same page or process, run `laika.mockRestoreAll()` in `afterEach` so previous-test interceptors cannot shadow new ones. See [Resetting Between Tests](pathname:///docs/resetting-between-tests).
