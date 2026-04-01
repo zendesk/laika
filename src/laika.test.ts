@@ -1,16 +1,17 @@
 import gql from 'graphql-tag'
 import waitFor from 'wait-for-observables'
-import {
-  ApolloLink,
-  execute,
-  fromError,
-  Observable,
-  Observer,
-  Operation,
-} from '@apollo/client/core'
+import type { Operation } from '@apollo/client/core'
+import { ApolloLink } from '@apollo/client/core'
 import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { Laika } from './laika'
-import { onNextTick, WaitForResult } from './testUtils'
+import {
+  executeLink,
+  observableError,
+  observableOf,
+  onNextTick,
+  TestObserver,
+  WaitForResult,
+} from './testUtils'
 
 const query = gql`
   query helloQuery {
@@ -42,6 +43,9 @@ const data = { data: { hello: 'world' } }
 const mockData = { data: { goodbye: 'world' } }
 const mockDataImmediate = { data: { so: 'fast' } }
 
+const createStubLink = (stub: jest.Mock) =>
+  new ApolloLink((operation, forward) => stub(operation, forward))
+
 describe('Laika', () => {
   it('returns passthrough data from the following link', async () => {
     const laika = new Laika({
@@ -49,13 +53,14 @@ describe('Laika', () => {
     })
     const interceptionLink = laika.createLink()
 
-    const backendStub = jest.fn(() =>
-      Observable.of(data),
-    ) as unknown as ApolloLink
-    const link = ApolloLink.from([interceptionLink, backendStub])
-    const [result] = (await waitFor(execute(link, { query }))) as WaitForResult<
-      typeof data
-    >
+    const backendStub = jest.fn(() => observableOf(data))
+    const link = ApolloLink.from([
+      interceptionLink,
+      createStubLink(backendStub),
+    ])
+    const [result] = (await waitFor(
+      executeLink(link, { query }),
+    )) as WaitForResult<typeof data>
     const { values } = result!
     expect(values).toEqual([data])
     expect(backendStub).toHaveBeenCalledTimes(1)
@@ -68,14 +73,17 @@ describe('Laika', () => {
       })
       const interceptionLink = laika.createLink()
 
-      const backendStub = jest.fn(() => Observable.of(data))
-      const link = ApolloLink.from([interceptionLink, backendStub as any])
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
       const interceptor = laika.intercept()
       interceptor.mockResultOnce({
         result: mockData,
       })
       const [result] = (await waitFor(
-        execute(link, { query }),
+        executeLink(link, { query }),
       )) as WaitForResult<unknown>
       const { values } = result!
       expect(values).toEqual([mockData])
@@ -88,8 +96,11 @@ describe('Laika', () => {
       })
       const interceptionLink = laika.createLink()
 
-      const backendStub = jest.fn(() => Observable.of(data))
-      const link = ApolloLink.from([interceptionLink, backendStub as any])
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
       const interceptor = laika.intercept()
 
       let triedCount = 0
@@ -99,8 +110,8 @@ describe('Laika', () => {
         })
         // eslint-disable-next-line no-await-in-loop
         const [result1, result2] = (await waitFor(
-          execute(link, { query }),
-          execute(link, { query }),
+          executeLink(link, { query }),
+          executeLink(link, { query }),
         )) as WaitForResult<unknown>
         const { values: mockValues } = result1!
         const { values: remoteValues } = result2!
@@ -117,8 +128,11 @@ describe('Laika', () => {
       const interceptionLink = laika.createLink()
 
       const mockedResultFn = jest.fn(() => ({ result: mockDataImmediate }))
-      const backendStub = jest.fn(() => Observable.of(data))
-      const link = ApolloLink.from([interceptionLink, backendStub as any])
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
 
       const interceptor = laika.intercept()
 
@@ -131,7 +145,7 @@ describe('Laika', () => {
         error: jest.fn(),
       }
 
-      const sub = execute(link, { query: subscription }).subscribe(observer)
+      const sub = executeLink(link, { query: subscription }).subscribe(observer)
       expect.assertions(7)
 
       await onNextTick(() => {
@@ -152,8 +166,11 @@ describe('Laika', () => {
       })
       const interceptionLink = laika.createLink()
 
-      const backendStub = jest.fn(() => Observable.of(data))
-      const link = ApolloLink.from([interceptionLink, backendStub as any])
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
 
       const interceptor = laika.intercept()
 
@@ -165,7 +182,7 @@ describe('Laika', () => {
 
       expect.assertions(7)
 
-      const sub = execute(link, { query: subscription }).subscribe(observer)
+      const sub = executeLink(link, { query: subscription }).subscribe(observer)
 
       await onNextTick(() => {
         expect(observer.next).not.toHaveBeenCalled()
@@ -186,8 +203,11 @@ describe('Laika', () => {
       })
       const interceptionLink = laika.createLink()
 
-      const backendStub = jest.fn(() => Observable.of(data))
-      const link = ApolloLink.from([interceptionLink, backendStub as any])
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
 
       const interceptor = laika.intercept()
 
@@ -209,7 +229,7 @@ describe('Laika', () => {
         expect(hasSettled).not.toHaveBeenCalled()
       })
 
-      const sub = execute(link, { query: subscription }).subscribe(observer)
+      const sub = executeLink(link, { query: subscription }).subscribe(observer)
 
       await onNextTick(() => {
         expect(hasSettled).toHaveBeenCalled()
@@ -233,15 +253,18 @@ describe('Laika', () => {
           })
           const interceptionLink = laika.createLink()
 
-          const backendStub = jest.fn(() => Observable.of(data))
-          const link = ApolloLink.from([interceptionLink, backendStub as any])
+          const backendStub = jest.fn(() => observableOf(data))
+          const link = ApolloLink.from([
+            interceptionLink,
+            createStubLink(backendStub),
+          ])
           const interceptor = laika.intercept(matcher)
           interceptor.mockResultOnce({
             result: mockData,
           })
           const [result1, result2] = (await waitFor(
-            execute(link, { query }),
-            execute(link, {
+            executeLink(link, { query }),
+            executeLink(link, {
               query: goodbyeQuery,
               variables: { type: 'goodbye' },
             }),
@@ -267,11 +290,11 @@ describe('Laika', () => {
     let underlyingObservable: any
     const untilSubscribed = new Promise((resolve) => {
       underlyingObservable = {
-        subscribe(observer: Observer<typeof data>) {
+        subscribe(observer: TestObserver<typeof data>) {
           resolve(undefined) // Release hold on test.
           void Promise.resolve().then(() => {
-            observer.next!(data)
-            observer.complete!()
+            observer.next?.(data)
+            observer.complete?.()
           })
           return { unsubscribe: unsubscribeStub, closed: false }
         },
@@ -280,9 +303,12 @@ describe('Laika', () => {
 
     const backendStub = jest.fn()
     backendStub.mockReturnValueOnce(underlyingObservable!)
-    const link = ApolloLink.from([interceptionLink, backendStub as any])
+    const link = ApolloLink.from([
+      interceptionLink,
+      createStubLink(backendStub),
+    ])
     // eslint-disable-next-line @typescript-eslint/no-shadow
-    const subscription = execute(link, { query }).subscribe({})
+    const subscription = executeLink(link, { query }).subscribe({})
     await untilSubscribed
     subscription.unsubscribe()
     expect(unsubscribeStub).toHaveBeenCalledTimes(1)
@@ -295,11 +321,11 @@ describe('Laika', () => {
     const interceptionLink = laika.createLink()
 
     const stub = jest.fn()
-    stub.mockReturnValueOnce(fromError(standardError))
-    stub.mockReturnValueOnce(fromError(standardError))
-    stub.mockReturnValueOnce(Observable.of(data))
-    const link = ApolloLink.from([interceptionLink, stub as any])
-    const observable = execute(link, { query })
+    stub.mockReturnValueOnce(observableError(standardError))
+    stub.mockReturnValueOnce(observableError(standardError))
+    stub.mockReturnValueOnce(observableOf(data))
+    const link = ApolloLink.from([interceptionLink, createStubLink(stub)])
+    const observable = executeLink(link, { query })
     const [result1, result2, result3] = (await waitFor(
       observable,
       observable,

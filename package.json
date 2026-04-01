@@ -53,13 +53,16 @@
     "build:cjs": "yarn rrun tsc --outDir cjs --module commonjs --target es2015",
     "build:esm": "yarn rrun tsc --outDir esm --module esnext --target es2015",
     "clean": "git clean -dfX --exclude=node_modules src && beemo typescript:sync-project-refs",
-    "format": "yarn rrun prettier --write \"./{src,tests}/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "yarn rrun prettier --write \"./{scripts,src,tests}/**/*.{js,jsx,mjs,ts,tsx,json,md}\"",
     "postinstallDev": "yarn prepare",
     "prepare": "rrun husky install .config/husky && beemo create-config",
     "release": "beemo run-script release",
-    "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:code",
+    "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:compat && yarn test:code",
+    "test:compat": "yarn build && yarn test:compat:consumer && yarn test:compat:jest",
+    "test:compat:consumer": "node ./scripts/test-apollo-compat.mjs",
+    "test:compat:jest": "node ./scripts/test-apollo-jest-compat.mjs",
     "test:code": "beemo jest",
-    "test:format": "yarn rrun prettier --check \"./{src,tests}/**/!(*.d).{.js,jsx,ts,tsx,json,md}\"",
+    "test:format": "yarn rrun prettier --check \"./{scripts,src,tests}/**/!(*.d).{.js,jsx,mjs,ts,tsx,json,md}\"",
     "test:lint": "rrun eslint 'src/**'",
     "test:types": "yarn rrun tsc --noEmit"
   },
@@ -67,16 +70,24 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@apollo/client": "^3.13.1",
-    "@niieani/scaffold": "^1.7.44",
-    "@types/jest": "^29.5.14",
-    "@types/lodash": "^4.17.15",
-    "graphql": "^15.6.1 || ^16.0.0",
+    "@apollo/client": "^4.1.6",
+    "@niieani/scaffold": "^1.7.58",
+    "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.24",
+    "graphql": "^16.13.2",
     "graphql-tag": "^2.12.6",
+    "rxjs": "^7.8.2",
     "wait-for-observables": "^1.0.3"
   },
   "peerDependencies": {
-    "@apollo/client": ">=3.2.5"
+    "@apollo/client": ">=3.2.5 <5",
+    "graphql": "^15.0.0 || ^16.0.0",
+    "rxjs": "^7.3.0"
+  },
+  "peerDependenciesMeta": {
+    "rxjs": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"

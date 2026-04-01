@@ -23,11 +23,12 @@ Read the Medium article about Laika: [Mock GraphQL Subscriptions with Laika — 
 
 ## Usage
 
+- Peer support: `@apollo/client` `>=3.2.5 <5`, `graphql` `^15 || ^16`, and `rxjs` `^7.3.0` for Apollo Client 4.x projects
 - [How to install](https://zendesk.github.io/laika/docs/how-to-install)
 - [Usage in Cypress](https://zendesk.github.io/laika/docs/usage-in-cypress)
 - [Logging and recording](https://zendesk.github.io/laika/docs/logging-and-recording)
 - [Pitfalls](https://zendesk.github.io/laika/docs/pitfalls)
-- [API reference](https://zendesk.github.io/laika/docs/modules/Laika)
+- [API reference](https://zendesk.github.io/laika/docs/api/interfaces/Laika)
 
 ## Alternatives
 

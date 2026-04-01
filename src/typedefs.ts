@@ -1,28 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type {
-  FetchResult,
-  NextLink,
-  Observable,
-  ObservableSubscription,
-  Operation,
-} from '@apollo/client/core'
+import type { FetchResult, Observable, Operation } from '@apollo/client/core'
 import type { Laika } from './laika'
 
 interface SubscriptionObserver<T> {
   closed: boolean
-  next: (value: T) => void
-  error: (errorValue: any) => void
-  complete: () => void
+  next?: (value: T) => void
+  error?: (errorValue: any) => void
+  complete?: () => void
 }
 
 /** @ignore */
-export type { FetchResult, NextLink, Operation } from '@apollo/client/core'
+export type { FetchResult, Operation } from '@apollo/client/core'
 /** @ignore */
 export type Variables = Operation['variables']
 /** @ignore */
 export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
 /** @ignore */
-export type Subscription = ObservableSubscription
+export type NextLink = (operation: Operation) => Observable<FetchResult>
+/** @ignore */
+export interface Subscription {
+  closed?: boolean
+  unsubscribe: () => void
+}
 
 export type OnSubscribeCallback = (options: {
   operation: Operation
@@ -76,7 +75,12 @@ export interface MatcherObject {
   variables?: Variables
 }
 
-/** [[include:matcher.md]] */
+/**
+ * Leave undefined if you want to intercept every operation. Otherwise provide
+ * either a {@link MatcherFn | matcher function} or a {@link MatcherObject | matcher object}
+ * with properties like `clientName` and/or a partial set of `variables`
+ * that have to match for a given operation to be intercepted.
+ */
 export type Matcher = MatcherFn | MatcherObject
 
 export type RecordingElement = RecordingMarker | RecordingPoint

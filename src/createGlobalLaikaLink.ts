@@ -3,13 +3,11 @@ import { DEFAULT_GLOBAL_PROPERTY_NAME } from './constants'
 import { Laika } from './laika'
 import type { CreateLaikaLinkOptions } from './typedefs'
 
-type OnLaikaReadyCallback = (laika: Laika) => void
-
 export const getLaikaSingleton = memoize(
   (
     globalPropertyName: string = DEFAULT_GLOBAL_PROPERTY_NAME,
     startLoggingImmediately: boolean = false,
-    onLaikaReady?: OnLaikaReadyCallback,
+    onLaikaReady?: CreateLaikaLinkOptions['onLaikaReady'],
   ) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access,no-multi-assign
     const singleton = ((globalThis as any)[globalPropertyName] = new Laika({
@@ -23,7 +21,8 @@ export const getLaikaSingleton = memoize(
     onLaikaReady?.(singleton)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
     ;(globalThis as any)[`${globalPropertyName}ReadyCallbacks`]?.forEach(
-      (fn: OnLaikaReadyCallback) => void fn(singleton),
+      (fn: NonNullable<CreateLaikaLinkOptions['onLaikaReady']>) =>
+        void fn(singleton),
     )
 
     return singleton
