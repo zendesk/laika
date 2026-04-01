@@ -37,9 +37,11 @@ export type OperationObserverCallback = (
 export interface Result {
   result?: FetchResult
   error?: Error
+  /** Delay the mocked emission by this many milliseconds. */
+  delay?: number
 }
 
-export type ResultFn = (operation: Operation) => Result
+export type ResultFn = (operation: Operation) => Result | PromiseLike<Result>
 export type ResultOrFn = Result | ResultFn
 
 export interface SubscribeMeta {

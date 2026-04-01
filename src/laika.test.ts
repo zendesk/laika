@@ -46,6 +46,22 @@ const mockDataImmediate = { data: { so: 'fast' } }
 const createStubLink = (stub: jest.Mock) =>
   new ApolloLink((operation, forward) => stub(operation, forward))
 
+const createDeferred = <T>() => {
+  let settle: (value: T | PromiseLike<T>) => void = () => undefined
+  let rejectPromise: (reason?: unknown) => void = () => undefined
+
+  const promise = new Promise<T>((resolve, reject) => {
+    settle = resolve
+    rejectPromise = reject
+  })
+
+  return {
+    promise,
+    resolve: settle,
+    reject: rejectPromise,
+  }
+}
+
 describe('Laika', () => {
   it('returns passthrough data from the following link', async () => {
     const laika = new Laika({
@@ -118,6 +134,121 @@ describe('Laika', () => {
         expect(mockValues).toEqual([mockData])
         expect(remoteValues).toEqual([data])
         expect(backendStub).toHaveBeenCalledTimes(triedCount)
+      }
+    })
+
+    it('waits for async mocked query results before emitting and completing', async () => {
+      const laika = new Laika({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
+      const interceptionLink = laika.createLink()
+
+      const deferred = createDeferred<{ result: typeof mockData }>()
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
+      const interceptor = laika.intercept()
+      interceptor.mockResultOnce(() => deferred.promise)
+
+      const observer = {
+        next: jest.fn(),
+        complete: jest.fn(),
+        error: jest.fn(),
+      }
+
+      executeLink(link, { query }).subscribe(observer)
+
+      expect(observer.next).not.toHaveBeenCalled()
+      expect(observer.complete).not.toHaveBeenCalled()
+
+      deferred.resolve({ result: mockData })
+
+      await onNextTick(() => {
+        expect(observer.next).toHaveBeenCalledTimes(1)
+        expect(observer.next).toHaveBeenCalledWith(mockData)
+        expect(observer.complete).toHaveBeenCalledTimes(1)
+        expect(observer.error).not.toHaveBeenCalled()
+        expect(backendStub).toHaveBeenCalledTimes(0)
+      })
+    })
+
+    it('forwards async mocked query rejections to observer.error', async () => {
+      const laika = new Laika({
+        referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+      })
+      const interceptionLink = laika.createLink()
+
+      const deferred = createDeferred<never>()
+      const backendStub = jest.fn(() => observableOf(data))
+      const link = ApolloLink.from([
+        interceptionLink,
+        createStubLink(backendStub),
+      ])
+      const interceptor = laika.intercept()
+      interceptor.mockResultOnce(() => deferred.promise)
+
+      const observer = {
+        next: jest.fn(),
+        complete: jest.fn(),
+        error: jest.fn(),
+      }
+
+      executeLink(link, { query }).subscribe(observer)
+
+      const asyncError = new Error('Async mock failed')
+      deferred.reject(asyncError)
+
+      await onNextTick(() => {
+        expect(observer.error).toHaveBeenCalledTimes(1)
+        expect(observer.error).toHaveBeenCalledWith(asyncError)
+        expect(observer.next).not.toHaveBeenCalled()
+        expect(observer.complete).not.toHaveBeenCalled()
+        expect(backendStub).toHaveBeenCalledTimes(0)
+      })
+    })
+
+    it('delays mocked query results when delay is provided', () => {
+      jest.useFakeTimers()
+
+      try {
+        const laika = new Laika({
+          referenceName: DEFAULT_GLOBAL_PROPERTY_NAME,
+        })
+        const interceptionLink = laika.createLink()
+
+        const backendStub = jest.fn(() => observableOf(data))
+        const link = ApolloLink.from([
+          interceptionLink,
+          createStubLink(backendStub),
+        ])
+        const interceptor = laika.intercept()
+        interceptor.mockResultOnce({
+          result: mockData,
+          delay: 250,
+        })
+
+        const observer = {
+          next: jest.fn(),
+          complete: jest.fn(),
+          error: jest.fn(),
+        }
+
+        executeLink(link, { query }).subscribe(observer)
+
+        expect(observer.next).not.toHaveBeenCalled()
+        jest.advanceTimersByTime(249)
+        expect(observer.next).not.toHaveBeenCalled()
+
+        jest.advanceTimersByTime(1)
+        expect(observer.next).toHaveBeenCalledTimes(1)
+        expect(observer.next).toHaveBeenCalledWith(mockData)
+        expect(observer.complete).toHaveBeenCalledTimes(1)
+        expect(observer.error).not.toHaveBeenCalled()
+        expect(backendStub).toHaveBeenCalledTimes(0)
+      } finally {
+        jest.useRealTimers()
       }
     })
 
