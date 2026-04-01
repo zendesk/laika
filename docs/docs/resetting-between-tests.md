@@ -18,7 +18,7 @@ laika.mockRestoreAll()
 
 `mockRestoreAll()` removes every interceptor created by that `Laika` instance, including interceptors created through `modifyRemote()`. It also restores passthrough behavior for future operations.
 
-## Jest
+## Jest / Vitest
 
 Use this pattern when you create a `Laika` instance directly in your unit tests:
 
@@ -77,6 +77,8 @@ describe('users query', () => {
 })
 ```
 
+For a broader unit-test setup, see [Usage in Jest / Vitest](pathname:///docs/usage-in-jest-vitest).
+
 ## Playwright
 
 When Laika is loaded in the browser app, reset it from the page after every test:
@@ -93,6 +95,8 @@ test.afterEach(async ({ page }) => {
 
 If your app lazy-loads Laika, make sure the page has already created `window.laika` before you try to use it.
 
+If you need to install interceptors before the first request runs, register `window.laikaReadyCallbacks` with `page.addInitScript()` before `page.goto()`. See [Usage in Playwright](pathname:///docs/usage-in-playwright).
+
 ## Cypress
 
 In Cypress, keep using `cy.then()` / `cy.window()` so cleanup runs in command order:
@@ -108,6 +112,8 @@ afterEach(() => {
 ```
 
 This works well together with the existing Cypress pattern where you grab `window.laika` once and use it inside later `cy.then()` callbacks.
+
+If your first requests fire during app boot, use `cy.visit(..., { onBeforeLoad })` and register `window.laikaReadyCallbacks` there. See [Usage in Cypress](pathname:///docs/usage-in-cypress).
 
 ## Active subscriptions
 
