@@ -64,6 +64,7 @@ module.exports = {
       'docusaurus-plugin-typedoc',
       {
         ...typedocConfig,
+        out: 'docs/api',
         watch: process.env.TYPEDOC_WATCH,
       },
     ],

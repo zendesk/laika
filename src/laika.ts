@@ -99,7 +99,7 @@ export class Laika {
    *
    * See [*Pitfalls*](pathname:///docs/pitfalls) for more information.
    *
-   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a {@link MatcherObject | matcher object} with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
+   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a `MatcherObject` with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
    * @param connectFutureLinksOrMitmFn If true, future links will still be called (e.g. reach the backend) and return responses. If set to a function, can serve for man-in-the-middle tinkering with the result.
    * @param keepNonSubscriptionConnectionsOpen If true, queries and mutations will behave a little like subscriptions, in that you will be able to fire updates even after the initial response. Experimental.
    * @example
@@ -409,7 +409,7 @@ export class Laika {
   /**
    * Modify backend (or mocked) responses before they reach subscribers.
    *
-   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a {@link MatcherObject | matcher object} with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
+   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a `MatcherObject` with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
    * @param mapFn Mapping function to alter the responses.
    */
   modifyRemote(

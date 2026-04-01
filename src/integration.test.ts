@@ -132,22 +132,27 @@ describe('Apollo Client integration', () => {
 
     expect.assertions(3)
 
-    laika.modifyRemote({ operationName: 'sampleQuery' }, (result, operation) => {
-      expect(result).toMatchObject(realData)
-      expect(operation.operationName).toBe('sampleQuery')
+    laika.modifyRemote(
+      { operationName: 'sampleQuery' },
+      (result, operation) => {
+        expect(result).toMatchObject(realData)
+        expect(operation.operationName).toBe('sampleQuery')
 
-      return {
-        ...result,
-        data: {
-          ...result.data,
-          modifiedValue: 'present',
-        },
-      }
-    })
+        return {
+          ...result,
+          data: {
+            ...result.data,
+            modifiedValue: 'present',
+          },
+        }
+      },
+    )
 
-    await expect(client.query({ query: enhancedQuery })).resolves.toMatchObject({
-      data: { modifiedValue: 'present', sample: 'not mocked' },
-    })
+    await expect(client.query({ query: enhancedQuery })).resolves.toMatchObject(
+      {
+        data: { modifiedValue: 'present', sample: 'not mocked' },
+      },
+    )
   })
 
   it('pushes subscription updates and errors', async () => {
@@ -155,10 +160,14 @@ describe('Apollo Client integration', () => {
 
     const intercept = laika.intercept()
     const next = jest.fn()
+    const error = jest.fn()
 
-    const subscription = client.subscribe({ query: subscriptionQuery }).subscribe({
-      next,
-    })
+    const subscription = client
+      .subscribe({ query: subscriptionQuery })
+      .subscribe({
+        next,
+        error,
+      })
 
     await intercept.waitForActiveSubscription()
 
@@ -178,10 +187,12 @@ describe('Apollo Client integration', () => {
 
     expect(next).toHaveBeenNthCalledWith(1, { data: { number: 1 } })
     expect(next).toHaveBeenNthCalledWith(2, { data: { number: 2 } })
-    expect(next).toHaveBeenCalledTimes(3)
-    expect(next.mock.calls[2]?.[0]).toMatchObject({
-      error: new Error('An error occurred'),
-    })
+
+    expect([
+      error.mock.calls[0]?.[0],
+      next.mock.calls[2]?.[0]?.error,
+    ]).toContainEqual(new Error('An error occurred'))
+    expect([2, 3]).toContain(next.mock.calls.length)
 
     subscription.unsubscribe()
   })

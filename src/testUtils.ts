@@ -36,10 +36,23 @@ const testClient = new ApolloClient({
   link: ApolloLink.empty(),
 })
 
+type ExecuteWithOptionalContext = (
+  link: ApolloLink,
+  request: Parameters<typeof execute>[1],
+  context?: { client: typeof testClient },
+) => ReturnType<typeof execute>
+
+const executeWithOptionalContext = execute as ExecuteWithOptionalContext
+
 export const executeLink = (
   link: ApolloLink,
   request: Parameters<typeof execute>[1],
-) => execute(link, request, { client: testClient })
+) =>
+  // Apollo Client 4 requires an explicit client in the execute context, while
+  // Apollo Client 3 still uses the two-argument signature.
+  executeWithOptionalContext.length >= 3
+    ? executeWithOptionalContext(link, request, { client: testClient })
+    : executeWithOptionalContext(link, request)
 
 export const observableOf = <T>(...values: T[]) =>
   new Observable<T>((observer) => {

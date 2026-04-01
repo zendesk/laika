@@ -3,38 +3,12 @@ import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getApolloCompatScenarios } from './apollo-compat-scenarios.mjs'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(scriptDir, '..')
 const fixturesDir = path.join(repoRoot, 'tests', 'compat')
-const tscPath = path.join(repoRoot, 'node_modules', '.bin', 'tsc')
-
-const scenarios = [
-  {
-    name: 'apollo3',
-    // Apollo Client 3.2.5 ships type declarations that are not clean under modern TS.
-    skipLibCheck: true,
-    dependencies: {
-      '@apollo/client': '3.2.5',
-      '@types/node': '20.17.30',
-      '@types/react': '16.14.67',
-      graphql: '15.10.2',
-      react: '16.14.0',
-    },
-  },
-  {
-    name: 'apollo4',
-    skipLibCheck: false,
-    dependencies: {
-      '@apollo/client': '4.1.6',
-      '@types/node': '20.17.30',
-      '@types/react': '17.0.90',
-      graphql: '16.13.2',
-      react: '17.0.2',
-      rxjs: '7.8.2',
-    },
-  },
-]
+const scenarios = getApolloCompatScenarios()
 
 const run = (command, args, cwd) => {
   execFileSync(command, args, {
@@ -43,14 +17,14 @@ const run = (command, args, cwd) => {
   })
 }
 
-const getTsconfig = ({ skipLibCheck }) => ({
+const getTsconfig = () => ({
   compilerOptions: {
     target: 'es2020',
     module: 'esnext',
     moduleResolution: 'node',
     strict: true,
     esModuleInterop: true,
-    skipLibCheck,
+    skipLibCheck: false,
     noEmit: true,
   },
   include: ['./consumer.ts'],
@@ -88,7 +62,7 @@ try {
 
       writeFileSync(
         path.join(workspaceDir, 'tsconfig.json'),
-        `${JSON.stringify(getTsconfig(scenario), null, 2)}\n`,
+        `${JSON.stringify(getTsconfig(), null, 2)}\n`,
       )
 
       const packageJsonPath = path.join(workspaceDir, 'package.json')
@@ -97,7 +71,7 @@ try {
         private: true,
         type: 'module',
         dependencies: {
-          ...scenario.dependencies,
+          ...scenario.consumerDependencies,
           '@zendesk/laika': `file:${tarballPath}`,
         },
       }
@@ -118,6 +92,7 @@ try {
         ],
         workspaceDir,
       )
+      const tscPath = path.join(workspaceDir, 'node_modules', '.bin', 'tsc')
       run(
         tscPath,
         ['--project', path.join(workspaceDir, 'tsconfig.json')],
