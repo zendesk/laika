@@ -13,3 +13,5 @@ release.config.js
 .github
 .prettierignore
 .yarnrc.yml
+scripts/
+tests/

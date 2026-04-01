@@ -16,13 +16,13 @@ This makes it much easier to create and update mocks. To use, follow these steps
 
 - Open the webapp in your favorite browser (making sure Laika is enabled -- e.g. using development build of the site).
 - Open DevTools and the console
-- Run [`laika.log.startLogging()`](api/classes/Laika.LogApi.md#startlogging)
+- Run [`laika.log.startLogging()`](pathname:///docs/api/interfaces/LogApi#startlogging)
 
 I recommend filtering your console's output to "GQL", as it will remove all the other noise.
 
-You may pass an optional filter to the [`startLogging`](api/classes/Laika.LogApi.md#startlogging) function. See [API documentation](api/classes/Laika.LogApi.md) for details.
+You may pass an optional filter to the [`startLogging`](pathname:///docs/api/interfaces/LogApi#startlogging) function. See [API documentation](pathname:///docs/api/interfaces/LogApi) for details.
 
-![Example logging output](api/media/example-logging.png)
+![Example logging output](pathname:///img/example-logging.png)
 
 ## Recording and code generation
 
@@ -42,7 +42,7 @@ before each action you take, I highly recommend marking them using the `markActi
 
 As you record, you'll notice the red dot indicator 🔴 now appearing next to the logs.
 
-![Example recording output](api/media/example-recording.png)
+![Example recording output](pathname:///img/example-recording.png)
 
 Once you're ready, stop the recording:
 
@@ -55,4 +55,4 @@ To automatically generate fixtures, interceptors and calls in order of your acti
 
 ## I want to know more!
 
-For more advanced usage of logging, recording, code generation, filtering and other options see the [Log API documentation](api/classes/Laika.LogApi.md).
+For more advanced usage of logging, recording, code generation, filtering and other options see the [Log API documentation](pathname:///docs/api/interfaces/LogApi).

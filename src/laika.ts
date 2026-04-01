@@ -26,20 +26,15 @@
 /* eslint-disable no-console */
 
 import noop from 'lodash/noop'
-import {
-  ApolloLink,
-  FetchResult,
-  NextLink,
-  Observable,
-  Observer,
-  Operation,
-} from '@apollo/client/core'
+import type { FetchResult, Operation } from '@apollo/client/core'
+import { ApolloLink, Observable } from '@apollo/client/core'
 import type { GenerateCodeOptions } from './codeGenerator'
 import { generateCode } from './codeGenerator'
 import { LOGGING_DISABLED_MATCHER } from './constants'
 import { getLogStyle } from './getLogStyle'
 import { hasMutationOperation, hasSubscriptionOperation } from './hasOperation'
 import { getEmitValueFn, getMatcherFn } from './linkUtils'
+import { mapObservable } from './observableUtils'
 import type {
   Behavior,
   EventFilterFn,
@@ -48,6 +43,7 @@ import type {
   ManInTheMiddleFn,
   Matcher,
   MatcherFn,
+  NextLink,
   OnSubscribe,
   OnSubscribeCallback,
   PassthroughDisableFn,
@@ -101,9 +97,9 @@ export class Laika {
    * being intercepted by the **first** interceptor that matches
    * the constraints of the {@link Matcher}.
    *
-   * See [*Pitfalls*](pitfalls.md) for more information.
+   * See [*Pitfalls*](pathname:///docs/pitfalls) for more information.
    *
-   * @param matcher [[include:matcher.md]]
+   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a {@link MatcherObject | matcher object} with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
    * @param connectFutureLinksOrMitmFn If true, future links will still be called (e.g. reach the backend) and return responses. If set to a function, can serve for man-in-the-middle tinkering with the result.
    * @param keepNonSubscriptionConnectionsOpen If true, queries and mutations will behave a little like subscriptions, in that you will be able to fire updates even after the initial response. Experimental.
    * @example
@@ -229,20 +225,34 @@ export class Laika {
           ({ disablePassthrough, forward }) =>
             new Observable((observer) => {
               // this is the equivalent of take(1), which zen-observable does not offer:
-              const innerSubscription = forward(operation).subscribe({
+              const innerSubscription: {
+                current?: Subscription
+              } = {}
+              let shouldDisableAfterSubscribe = false
+
+              innerSubscription.current = forward(operation).subscribe({
                 next: (remoteResult) => {
-                  observer.next(remoteResult)
-                  observer.complete()
-                  innerSubscription.unsubscribe()
-                  disablePassthrough()
+                  observer.next?.(remoteResult)
+                  observer.complete?.()
+                  if (innerSubscription.current) {
+                    innerSubscription.current.unsubscribe()
+                    disablePassthrough()
+                  } else {
+                    shouldDisableAfterSubscribe = true
+                  }
                 },
                 complete: () => {
-                  if (!observer.complete) observer.complete()
+                  observer.complete?.()
                 },
                 error: (remoteError) => {
-                  observer.error(remoteError)
+                  observer.error?.(remoteError)
                 },
               })
+
+              if (shouldDisableAfterSubscribe) {
+                innerSubscription.current?.unsubscribe()
+                disablePassthrough()
+              }
             }),
         )
       }
@@ -399,7 +409,7 @@ export class Laika {
   /**
    * Modify backend (or mocked) responses before they reach subscribers.
    *
-   * @param matcher [[include:matcher.md]]
+   * @param matcher Leave undefined if you want to intercept every operation. Otherwise provide either a {@link MatcherFn | matcher function} or a {@link MatcherObject | matcher object} with properties like `clientName` and/or a partial set of `variables` that have to match for a given operation to be intercepted.
    * @param mapFn Mapping function to alter the responses.
    */
   modifyRemote(
@@ -407,7 +417,7 @@ export class Laika {
     mapFn: (result: FetchResult, operation: Operation) => FetchResult,
   ) {
     const interceptor = this.intercept(matcher, ({ forward, operation }) =>
-      forward(operation).map((result) => mapFn(result, operation)),
+      mapObservable(forward(operation), (result) => mapFn(result, operation)),
     )
 
     return {
@@ -501,105 +511,108 @@ export class Laika {
    * @internal
    * */
   interceptor: InterceptorFn = (operation, forward) =>
-    new Observable<FetchResult>((observer) => {
-      // we're subscribed, e.g. a component with useQuery was mounted or a refetch was requested
-      operation.setContext({
-        subscribeTime: Date.now(),
-        interceptMode: 'unset',
-      })
+    mapObservable(
+      new Observable<FetchResult>((observer) => {
+        // we're subscribed, e.g. a component with useQuery was mounted or a refetch was requested
+        operation.setContext({
+          subscribeTime: Date.now(),
+          interceptMode: 'unset',
+        })
 
-      let active = true
+        let active = true
 
-      let passthroughSubscription: Subscription | undefined
+        let passthroughSubscription: Subscription | undefined
 
-      let lastMitm: ManInTheMiddleFn | undefined
+        let lastMitm: ManInTheMiddleFn | undefined
 
-      const disablePassthrough = () => {
-        let isSuccess = false
-        if (passthroughSubscription && !passthroughSubscription.closed) {
-          passthroughSubscription.unsubscribe()
-          isSuccess = true
-        }
-        passthroughSubscription = undefined
-        lastMitm = undefined
-        operation.setContext({ interceptMode: 'mock' })
-        return isSuccess
-      }
-
-      // currently mounted components would not work until they're remounted
-      // hence the need for passthrough
-      const enablePassthrough = (mitm?: ManInTheMiddleFn | undefined) => {
-        if (observer.closed || !active) {
-          // no body is listening anymore, we can only clean-up:
-          disablePassthrough()
-          return false
-        }
-
-        if (passthroughSubscription) {
-          if (mitm === lastMitm) {
-            // no change needed, we're already subscribed to the right thing!
-            return true
+        const disablePassthrough = () => {
+          let isSuccess = false
+          if (passthroughSubscription && !passthroughSubscription.closed) {
+            passthroughSubscription.unsubscribe()
+            isSuccess = true
           }
-          // we need to re-subscribe because the sniffer has changed
-          // could be mitigated with a switchMap from rxjs, but we don't have rxjs 🤷‍♂️
+          passthroughSubscription = undefined
+          lastMitm = undefined
+          operation.setContext({ interceptMode: 'mock' })
+          return isSuccess
+        }
+
+        // currently mounted components would not work until they're remounted
+        // hence the need for passthrough
+        const enablePassthrough = (mitm?: ManInTheMiddleFn | undefined) => {
+          if (observer.closed || !active) {
+            // no body is listening anymore, we can only clean-up:
+            disablePassthrough()
+            return false
+          }
+
+          if (passthroughSubscription) {
+            if (mitm === lastMitm) {
+              // no change needed, we're already subscribed to the right thing!
+              return true
+            }
+            // we need to re-subscribe because the sniffer has changed.
+            // Keeping this dependency-free preserves Apollo 3 compatibility.
+            disablePassthrough()
+          }
+
+          // we 'unmock', i.e. we want to (re-)establish connectivity:
+          const forward$ = mitm
+            ? mitm({
+                operation,
+                forward,
+                observer,
+                enablePassthrough,
+                disablePassthrough,
+              })
+            : forward(operation)
+
+          operation.setContext({ interceptMode: mitm ? 'mitm' : 'passthrough' })
+          passthroughSubscription = forward$.subscribe(observer)
+          lastMitm = mitm
+
+          return true
+        }
+
+        let cleanupFn: () => void = noop
+
+        const subscribeMeta = {
+          operation,
+          observer,
+          forward,
+          enablePassthrough,
+          disablePassthrough,
+        }
+        const interceptionBehavior = [...this.behaviors].find(({ matcher }) =>
+          matcher(operation),
+        )
+        if (interceptionBehavior) {
+          cleanupFn = interceptionBehavior.onSubscribe(subscribeMeta)
+        } else {
+          this.unmatchedOperationOptions.add(subscribeMeta)
+          // until mocking starts, we want to forward everything from the backend as is:
+          enablePassthrough()
+
+          cleanupFn = () => {
+            this.unmatchedOperationOptions.delete(subscribeMeta)
+            const cleanup = this.cleanupFnPerSubscribeMeta.get(subscribeMeta)
+            if (cleanup) cleanup()
+          }
+        }
+
+        const logUnsubscribe = this.logSubscribe(subscribeMeta)
+
+        return () => {
+          logUnsubscribe()
+          cleanupFn()
           disablePassthrough()
+          active = false
+          operation.setContext({ interceptMode: 'disposed' })
+          // TODO: does it make sense to complete the observer here? `if (!o.closed) o.complete()`
         }
-
-        // we 'unmock', i.e. we want to (re-)establish connectivity:
-        const forward$ = mitm
-          ? mitm({
-              operation,
-              forward,
-              observer,
-              enablePassthrough,
-              disablePassthrough,
-            })
-          : forward(operation)
-
-        operation.setContext({ interceptMode: mitm ? 'mitm' : 'passthrough' })
-        passthroughSubscription = forward$.subscribe(observer)
-        lastMitm = mitm
-
-        return true
-      }
-
-      let cleanupFn: () => void = noop
-
-      const subscribeMeta = {
-        operation,
-        observer,
-        forward,
-        enablePassthrough,
-        disablePassthrough,
-      }
-      const interceptionBehavior = [...this.behaviors].find(({ matcher }) =>
-        matcher(operation),
-      )
-      if (interceptionBehavior) {
-        cleanupFn = interceptionBehavior.onSubscribe(subscribeMeta)
-      } else {
-        this.unmatchedOperationOptions.add(subscribeMeta)
-        // until mocking starts, we want to forward everything from the backend as is:
-        enablePassthrough()
-
-        cleanupFn = () => {
-          this.unmatchedOperationOptions.delete(subscribeMeta)
-          const cleanup = this.cleanupFnPerSubscribeMeta.get(subscribeMeta)
-          if (cleanup) cleanup()
-        }
-      }
-
-      const logUnsubscribe = this.logSubscribe(subscribeMeta)
-
-      return () => {
-        logUnsubscribe()
-        cleanupFn()
-        disablePassthrough()
-        active = false
-        operation.setContext({ interceptMode: 'disposed' })
-        // TODO: does it make sense to complete the observer here? `if (!o.closed) o.complete()`
-      }
-    }).map(this.getLogFunction({ operation, forward }))
+      }),
+      this.getLogFunction({ operation, forward }),
+    )
 
   // interceptor-related properties:
 
@@ -745,7 +758,7 @@ export declare abstract class LogApi {
    * If you did not provide a matcher, it will log everything.
    * You will see queries, mutations, and subscription pushes along with their data.
    *
-   * ![Example logging output](media://example-logging.png)
+   * ![Example logging output](pathname:///img/example-logging.png)
    */
   startLogging(matcher?: Matcher | undefined): void
   /**
@@ -755,7 +768,7 @@ export declare abstract class LogApi {
   /**
    * Starts the recording process. Every result will be saved until you run `log.stopRecording()`.
    *
-   * ![Example recording output](media://example-recording.png)
+   * ![Example recording output](pathname:///img/example-recording.png)
    *
    * @param startingActionName Name what you are about to do. For example "opening a new ticket".
    * @param matcher A matcher object or function to record only the events that you are interested in, for example `{operationName: 'getColors', clientName: 'backend1'}` will record only `'getColors'` operations.
@@ -820,8 +833,8 @@ export declare abstract class InterceptApi {
    *
    * Similar to `jest.fn().mockReturnValue(...)`.
    *
-   * @param resultOrFn [[include:result-or-fn.md]]
-   * @param matcher [[include:mock-matcher.md]]
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param matcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Always respond with the mock to all queries/mutations intercepted
    * ```js
@@ -860,8 +873,8 @@ export declare abstract class InterceptApi {
    *
    * Can be run multiple times and will send responses in order in which `mockResultOnce` was called.
    *
-   * @param resultOrFn [[include:result-or-fn.md]]
-   * @param matcher [[include:mock-matcher.md]]
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param matcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Respond with the mock to the first intercepted operation with the name `getUsers`,
    * then with a different mock the second time that operation is intercepted.
@@ -892,7 +905,7 @@ export declare abstract class InterceptApi {
    */
   waitForNextSubscription(): Promise<{
     operation: Operation
-    observer: Observer<FetchResult>
+    observer: FetchResultSubscriptionObserver
   }>
   /**
    * Push data to an already active `subscription`-type operation.
@@ -904,8 +917,8 @@ export declare abstract class InterceptApi {
    * Combine with {@link InterceptApi.waitForActiveSubscription | `waitForActiveSubscription()`}
    * to ensure a subscription is active before calling.
    *
-   * @param resultOrFn [[include:result-or-fn.md]]
-   * @param fireMatcher [[include:mock-matcher.md]]
+   * @param resultOrFn The object to be used as response in the shape of `{result: {}, error: {}}`. Can be a function that takes operation as the first argument and returns the described object. This may be useful when you wish to customize the mocked response based on the variables from the query.
+   * @param fireMatcher Refine when this mock will fire with an additional {@link Matcher | matcher} (e.g. only when specific variables are matched).
    * @example
    * Push new information to a live feed:
    * ```js

@@ -7,27 +7,50 @@ import { ApolloLink, Observable } from '@apollo/client/core'
  * @param linkPromise A Promise to an Apollo Link to wrap.
  */
 export const createLazyLoadableLink = (linkPromise: Promise<ApolloLink>) =>
-  new ApolloLink((operation, forward) => {
-    const linkObservable: Observable<ApolloLink> = new Observable(
-      (observer) => {
+  new ApolloLink(
+    (operation, forward) =>
+      new Observable((observer) => {
+        let innerSubscription:
+          | {
+              unsubscribe: () => void
+            }
+          | undefined
+        let disposed = false
+
         void linkPromise.then(
           (link) => {
-            observer.next(link)
-            observer.complete()
+            if (disposed) return
+
+            const actualLinkObservable = link?.request(operation, forward)
+            if (!actualLinkObservable) {
+              observer.error?.(
+                new Error(
+                  `LazyLoadableLink: Incorrect linkPromise provided or it's request function returned null`,
+                ),
+              )
+              return
+            }
+
+            innerSubscription = actualLinkObservable.subscribe({
+              next: (result) => {
+                observer.next?.(result)
+              },
+              error: (error) => {
+                observer.error?.(error)
+              },
+              complete: () => {
+                observer.complete?.()
+              },
+            })
           },
           (error) => {
-            observer.error(error)
+            observer.error?.(error)
           },
         )
-      },
-    )
-    return linkObservable.flatMap((link) => {
-      const actualLinkObservable = link?.request(operation, forward)
-      if (!actualLinkObservable) {
-        throw new Error(
-          `LazyLoadableLink: Incorrect linkPromise provided or it's request function returned null`,
-        )
-      }
-      return actualLinkObservable
-    })
-  })
+
+        return () => {
+          disposed = true
+          innerSubscription?.unsubscribe()
+        }
+      }),
+  )

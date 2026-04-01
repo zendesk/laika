@@ -20,6 +20,9 @@ $ yarn add @zendesk/laika
 
 Note that if you do not intend to use Laika for testing production code, you can use the `--save-dev` flag (or `--dev` in case of `yarn`) to install it as a development dependency.
 
+Laika supports `@apollo/client` `>=3.2.5 <5` with `graphql` `^15 || ^16`.
+If your project uses Apollo Client 4, make sure `rxjs` `^7.3.0` is installed as well.
+
 ## Loading the Laika Link in your project
 
 For tests that run on your production code, you'll likely want to load the link conditionally, so that it is not downloaded by your users, but only in certain scenarios, e.g. inside of your browser test runner.
@@ -60,9 +63,9 @@ import { createLazyLoadableLink } from '@zendesk/laika'
  */
 export const createLazyLoadableLaikaLink = (options) =>
   createLazyLoadableLink(
-    import(
-      '@zendesk/laika' /* webpackChunkName: 'apolloLaikaLink' */
-    ).then(({ createInterceptingLink }) => createInterceptingLink(options)),
+    import('@zendesk/laika' /* webpackChunkName: 'apolloLaikaLink' */).then(
+      ({ createInterceptingLink }) => createInterceptingLink(options),
+    ),
   )
 ```
 
@@ -73,22 +76,21 @@ If you're using webpack, the `webpackChunkName` magic comment will ensure a sepa
 If you have full control over the Apollo client inside of your tests, you may directly create the Link from an instance of Laika:
 
 ```typescript
-import { Laika } from "@zendesk/laika/esm/laika"
+import { Laika } from '@zendesk/laika/esm/laika'
 
 const laika = new Laika()
 
-const link = from([
-  laika.createLink(),
-  new HttpLink({ uri: "..." })
-])
+const link = from([laika.createLink(), new HttpLink({ uri: '...' })])
 
 it('works', () => {
   // setup your test, for example:
   const interceptor = laika.intercept()
   interceptor.mockResultOnce({
     result: {
-      data: {/* ... */},
-    }
+      data: {
+        /* ... */
+      },
+    },
   })
   // run some assertions
   // ...
@@ -99,8 +101,8 @@ Note that Laika itself isn't directly exported from `@zendesk/laika` in order to
 
 ## What can I import from the module?
 
-See the [API reference](api/modules.md).
+See the [API reference](pathname:///docs/api).
 
 ## What next?
 
-Read about how to use the library in [Laika](api/modules/Laika.md).
+Read about how to use the library in [Laika](pathname:///docs/api/interfaces/Laika).

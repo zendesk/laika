@@ -1,5 +1,5 @@
 /**
- * See: [how to install in your project](how-to-install.md)
+ * See: [how to install in your project](pathname:///docs/how-to-install)
  * @packageDocumentation
  * @module @zendesk/laika
  */

@@ -1,9 +1,6 @@
 /* eslint-disable global-require,import/no-commonjs */
 // @ts-check
-const typedocFullConfig = require('./typedoc')
-
-const { theme, source, outline, markedOptions, ...typedocConfig } =
-  typedocFullConfig
+const typedocConfig = require('./typedoc')
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
@@ -12,7 +9,11 @@ module.exports = {
   url: 'https://zendesk.github.io',
   baseUrl: '/laika/',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
   favicon: 'img/favicon.ico',
   organizationName: 'zendesk', // Usually your GitHub org/user name.
   projectName: 'laika', // Usually your repo name.
@@ -61,15 +62,8 @@ module.exports = {
   plugins: [
     [
       'docusaurus-plugin-typedoc',
-      // Plugin / TypeDoc options
       {
         ...typedocConfig,
-        out: 'api',
-        sidebar: {
-          categoryLabel: 'API reference',
-          position: 1,
-          fullNames: true,
-        },
         watch: process.env.TYPEDOC_WATCH,
       },
     ],
