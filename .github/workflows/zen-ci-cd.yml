@@ -22,7 +22,7 @@ jobs:
         name: Find Yarn's cache folder
         run: echo "::set-output name=path::$(yarn config get cacheFolder)"
       - name: Cache Yarn's cache folder
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.find-yarn-cache-folder.outputs.path }}
           key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
@@ -35,7 +35,7 @@ jobs:
           cd docs
           echo "::set-output name=path::$(yarn config get cacheFolder)"
       - name: Cache Docs Yarn's cache folder
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.find-yarn-cache-folder-docs.outputs.path }}
           key: yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('docs/yarn.lock') }}
