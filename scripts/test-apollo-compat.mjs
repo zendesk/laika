@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,8 +9,28 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(scriptDir, '..')
 const fixturesDir = path.join(repoRoot, 'tests', 'compat')
 const scenarios = getApolloCompatScenarios()
+const npmCliPath = path.resolve(
+  path.dirname(process.execPath),
+  '../lib/node_modules/npm/bin/npm-cli.js',
+)
 
 const run = (command, args, cwd) => {
+  if (command === 'node') {
+    execFileSync(process.execPath, args, {
+      cwd,
+      stdio: 'inherit',
+    })
+    return
+  }
+
+  if (command === 'npm' && existsSync(npmCliPath)) {
+    execFileSync(process.execPath, [npmCliPath, ...args], {
+      cwd,
+      stdio: 'inherit',
+    })
+    return
+  }
+
   execFileSync(command, args, {
     cwd,
     stdio: 'inherit',
@@ -30,10 +50,14 @@ const getTsconfig = () => ({
   include: ['./consumer.ts'],
 })
 
-const rawPackOutput = execFileSync('npm', ['pack', '--json'], {
-  cwd: repoRoot,
-  encoding: 'utf8',
-})
+const rawPackOutput = execFileSync(
+  existsSync(npmCliPath) ? process.execPath : 'npm',
+  existsSync(npmCliPath) ? [npmCliPath, 'pack', '--json'] : ['pack', '--json'],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+)
 
 const packOutputMatch = rawPackOutput.match(/\[\s*{[\s\S]*}\s*\]\s*$/)
 

@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import {
   cpSync,
+  existsSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -14,6 +15,13 @@ import { getApolloCompatScenarios } from './apollo-compat-scenarios.mjs'
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(scriptDir, '..')
 const scenarios = getApolloCompatScenarios()
+const npmCliPath = path.resolve(
+  path.dirname(process.execPath),
+  '../lib/node_modules/npm/bin/npm-cli.js',
+)
+const yarnCliPath = process.env.npm_execpath
+const hasNodeRunnableYarnCli =
+  typeof yarnCliPath === 'string' && /\.(?:c?js|mjs)$/.test(yarnCliPath)
 
 const workspacePaths = [
   '.config',
@@ -31,18 +39,48 @@ const workspacePaths = [
   'jest.config.js',
   'package.json',
   'prettier.config.js',
+  'scripts',
   'src',
   'tsconfig.json',
   'yarn.lock',
 ]
 
 const run = (command, args, cwd, extraEnv = {}) => {
+  const env = {
+    ...process.env,
+    ...extraEnv,
+  }
+
+  if (command === 'node') {
+    execFileSync(process.execPath, args, {
+      cwd,
+      env,
+      stdio: 'inherit',
+    })
+    return
+  }
+
+  if (command === 'npm' && existsSync(npmCliPath)) {
+    execFileSync(process.execPath, [npmCliPath, ...args], {
+      cwd,
+      env,
+      stdio: 'inherit',
+    })
+    return
+  }
+
+  if (command === 'yarn' && hasNodeRunnableYarnCli) {
+    execFileSync(process.execPath, [yarnCliPath, ...args], {
+      cwd,
+      env,
+      stdio: 'inherit',
+    })
+    return
+  }
+
   execFileSync(command, args, {
     cwd,
-    env: {
-      ...process.env,
-      ...extraEnv,
-    },
+    env,
     stdio: 'inherit',
   })
 }
