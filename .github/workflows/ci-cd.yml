@@ -156,6 +156,7 @@ jobs:
       - compat
       - docs
     runs-on: ubuntu-latest
+    environment: npm-publish
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
