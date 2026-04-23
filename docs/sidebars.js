@@ -3,12 +3,20 @@ module.exports = {
   docsSidebar: [
     {
       type: 'category',
-      label: 'Home',
+      label: 'Guides',
       items: [
-        'api/index',
+        {
+          type: 'doc',
+          id: 'readme',
+          label: 'Home',
+        },
         'how-to-install',
-        'api/Laika/index',
+        'loading-laika-conditionally',
+        'testing-approach',
+        'usage-in-playwright',
+        'usage-in-jest-vitest',
         'usage-in-cypress',
+        'advanced-usage',
         'resetting-between-tests',
         'logging-and-recording',
         'pitfalls',

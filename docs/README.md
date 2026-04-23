@@ -1,12 +1,18 @@
 # Website
 
-This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern static website generator.
+This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
 ## Installation
 
 ```console
-yarn install
+cd ..
+yarn install --immutable
+
+cd docs
+yarn install --immutable
 ```
+
+The docs site generates API reference pages from the package source, so the root workspace dependencies and generated `tsconfig.json` need to exist. The docs scripts will bootstrap those root dependencies automatically if they are missing, but installing both workspaces upfront is faster and keeps the setup explicit.
 
 ## Local Development
 
@@ -14,7 +20,8 @@ yarn install
 yarn start
 ```
 
-This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
+This command starts a local development server and opens a browser window. Most changes are reflected live without having to restart the server.
+The docs home at `/docs/` is generated from the repository root `README.md` before the site starts or builds. The generated README page, copied README media, and generated API reference docs all stay gitignored.
 
 ## Build
 
