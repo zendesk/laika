@@ -25,8 +25,7 @@ const hasNodeRunnableYarnCli =
 
 const workspacePaths = [
   '.config',
-  '.eslintignore',
-  '.eslintrc.js',
+  'eslint.config.cjs',
   '.gitignore',
   '.node-version',
   '.npmignore',
@@ -43,6 +42,14 @@ const workspacePaths = [
   'src',
   'tsconfig.json',
   'yarn.lock',
+]
+
+const compatWorkspaceRemovedDevDependencies = [
+  '@eslint/js',
+  'eslint',
+  'eslint-plugin-import',
+  'globals',
+  'typescript-eslint',
 ]
 
 const run = (command, args, cwd, extraEnv = {}) => {
@@ -110,7 +117,21 @@ const updatePackageJsonForScenario = (workspaceDir, scenario) => {
     delete packageJson.devDependencies[dependencyName]
   }
 
+  for (const dependencyName of compatWorkspaceRemovedDevDependencies) {
+    delete packageJson.devDependencies[dependencyName]
+  }
+
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`)
+}
+
+const updateTsconfigForScenario = (workspaceDir) => {
+  const tsconfigPath = path.join(workspaceDir, 'tsconfig.json')
+  const tsconfig = JSON.parse(readFileSync(tsconfigPath, 'utf8'))
+
+  delete tsconfig.compilerOptions?.ignoreDeprecations
+  delete tsconfig.compilerOptions?.types
+
+  writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`)
 }
 
 for (const scenario of scenarios) {
@@ -121,6 +142,7 @@ for (const scenario of scenarios) {
   try {
     copyCompatWorkspace(workspaceDir)
     updatePackageJsonForScenario(workspaceDir, scenario)
+    updateTsconfigForScenario(workspaceDir)
 
     run('yarn', ['install'], workspaceDir, {
       YARN_ENABLE_IMMUTABLE_INSTALLS: 'false',

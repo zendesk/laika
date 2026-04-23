@@ -1,4 +1,0 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-yarn commitlint --config .config/commitlint.config.cjs --edit "$1"

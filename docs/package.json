@@ -9,8 +9,7 @@
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
-    "clear": "docusaurus clear",
-    "postinstallDev": "true"
+    "clear": "docusaurus clear"
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",
@@ -26,10 +25,10 @@
     "@types/react-dom": "^19.2.3",
     "docusaurus-plugin-typedoc": "^1.4.2",
     "highlight.js": "^11.11.1",
-    "marked": "^17.0.5",
-    "typedoc": "^0.28.18",
+    "marked": "^18.0.2",
+    "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "browserslist": {
     "production": [
