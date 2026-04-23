@@ -1,0 +1,20 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '21 3 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: read
+
+jobs:
+  trigger-codeql:
+    uses: zendesk/prodsec-code-scanning/.github/workflows/codeql_advanced_shared.yml@production
