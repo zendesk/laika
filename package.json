@@ -20,7 +20,7 @@
     "url": "https://github.com/zendesk/laika.git"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": "24.x"
   },
   "license": "Apache-2.0",
   "author": "Zendesk <pingu-npm@zendesk.com>",
@@ -50,33 +50,46 @@
   "source": "src/main.ts",
   "scripts": {
     "build": "yarn build:cjs && yarn build:esm",
-    "build:cjs": "yarn rrun tsc --outDir cjs --module commonjs --target es2015",
-    "build:esm": "yarn rrun tsc --outDir esm --module esnext --target es2015",
-    "clean": "git clean -dfX --exclude=node_modules src && beemo typescript:sync-project-refs",
-    "format": "yarn rrun prettier --write \"./{scripts,src,tests}/**/*.{js,jsx,mjs,ts,tsx,json,md}\"",
-    "postinstallDev": "yarn prepare",
-    "prepare": "rrun husky install .config/husky && beemo create-config",
-    "release": "beemo run-script release",
+    "build:cjs": "tsc --outDir cjs --module commonjs --target es2015",
+    "build:esm": "tsc --outDir esm --module esnext --target es2015",
+    "clean": "rm -rf build cjs coverage dist dts esm lib mjs umd *.tsbuildinfo",
+    "format": "prettier --write \"./{scripts,src,tests}/**/*.{js,jsx,cjs,mjs,ts,tsx,json,md}\"",
+    "release": "node ./scripts/release.mjs",
     "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:compat && yarn test:code",
     "test:compat": "yarn build && yarn test:compat:consumer && yarn test:compat:jest",
     "test:compat:consumer": "node ./scripts/test-apollo-compat.mjs",
     "test:compat:jest": "node ./scripts/test-apollo-jest-compat.mjs",
-    "test:code": "beemo jest",
-    "test:format": "yarn rrun prettier --check \"./{scripts,src,tests}/**/!(*.d).{.js,jsx,mjs,ts,tsx,json,md}\"",
-    "test:lint": "rrun eslint 'src/**'",
-    "test:types": "yarn rrun tsc --noEmit"
+    "test:code": "jest",
+    "test:format": "prettier --check \"./{scripts,src,tests}/**/!(*.d).{js,jsx,cjs,mjs,ts,tsx,json,md}\"",
+    "test:lint": "eslint 'src/**'",
+    "test:types": "tsc --noEmit"
   },
   "dependencies": {
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@apollo/client": "^4.1.6",
-    "@niieani/scaffold": "^1.7.58",
+    "@apollo/client": "^4.1.7",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@eslint/js": "^10.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@swc/core": "^1.15.30",
+    "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.24",
+    "commitlint": "^20.5.0",
+    "eslint": "^10.2.1",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^17.5.0",
     "graphql": "^16.13.2",
     "graphql-tag": "^2.12.6",
+    "jest": "^30.3.0",
+    "prettier": "^3.8.3",
     "rxjs": "^7.8.2",
+    "semantic-release": "^25.0.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.0",
     "wait-for-observables": "^1.0.3"
   },
   "peerDependencies": {
@@ -113,7 +126,27 @@
         "name": "alpha",
         "prerelease": true
       }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false,
+          "tarballDir": "dist"
+        }
+      ],
+      [
+        "@semantic-release/exec",
+        {
+          "verifyConditionsCmd": "node ./scripts/npm-release-with-totp.mjs verify",
+          "publishCmd": "node ./scripts/npm-release-with-totp.mjs publish \"${nextRelease.version}\" \"${branch.name}\"",
+          "addChannelCmd": "node ./scripts/npm-release-with-totp.mjs add-channel \"${nextRelease.version}\" \"${branch.name}\""
+        }
+      ],
+      "@semantic-release/github"
     ]
   },
-  "packageManager": "yarn@4.8.1"
+  "packageManager": "yarn@4.14.1"
 }

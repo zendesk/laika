@@ -26,12 +26,8 @@ export type OperationDocument<TData = unknown, TVariables = Variables> =
   | DocumentNode
   | TypedDocumentNode<TData, TVariables>
 /** @ignore */
-export type InferResultData<TDocument> = TDocument extends TypedDocumentNode<
-  infer TData,
-  any
->
-  ? TData
-  : unknown
+export type InferResultData<TDocument> =
+  TDocument extends TypedDocumentNode<infer TData, any> ? TData : unknown
 /** @ignore */
 export type FetchResultSubscriptionObserver = SubscriptionObserver<FetchResult>
 /** @ignore */
@@ -140,8 +136,7 @@ export interface RecordingPointWithFixtureMeta extends RecordingPoint {
   stringifiedResult?: string
 }
 
-export interface RecordingPointWithFixtureData
-  extends RecordingPointWithFixtureMeta {
+export interface RecordingPointWithFixtureData extends RecordingPointWithFixtureMeta {
   fixtureFnString?: string
   fixtureFnName: string
   fixtureCallString: string
