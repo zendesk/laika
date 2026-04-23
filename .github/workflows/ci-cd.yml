@@ -174,6 +174,8 @@ jobs:
           restore-keys: |
             yarn-cache-folder-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-
             yarn-cache-folder-os-${{ runner.os }}-
+      - name: Install oathtool
+        run: sudo apt-get install --fix-broken --yes oathtool
       - name: Build and release
         run: |
           yarn install --immutable
@@ -181,4 +183,5 @@ jobs:
           yarn release
         env:
           NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+          NPM_TOTP_DEVICE: ${{secrets.NPM_TOTP_DEVICE}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
