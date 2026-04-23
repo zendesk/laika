@@ -6,6 +6,9 @@ on:
       - master
       - main
 
+env:
+  NODE_VERSION: 24
+
 jobs:
   publish-docs:
     name: Publish documentation
@@ -16,31 +19,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
       - id: find-yarn-cache-folder
         name: Find Yarn's cache folder
-        run: echo "::set-output name=path::$(yarn config get cacheFolder)"
+        run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
       - name: Cache Yarn's cache folder
         uses: actions/cache@v4
         with:
           path: ${{ steps.find-yarn-cache-folder.outputs.path }}
-          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
+          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-
             yarn-cache-folder-os-${{ runner.os }}-
       - id: find-yarn-cache-folder-docs
         name: Find Docs Yarn's cache folder
         run: |
           cd docs
-          echo "::set-output name=path::$(yarn config get cacheFolder)"
+          echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
       - name: Cache Docs Yarn's cache folder
         uses: actions/cache@v4
         with:
           path: ${{ steps.find-yarn-cache-folder-docs.outputs.path }}
-          key: yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('docs/yarn.lock') }}
+          key: yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('docs/yarn.lock') }}
           restore-keys: |
-            yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-docs-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-
             yarn-cache-folder-docs-os-${{ runner.os }}-
       - name: Install dependencies
         run: |

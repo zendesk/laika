@@ -204,9 +204,9 @@ export const generateCode = (
                 )
                   ? Number.POSITIVE_INFINITY
                   : // lower priority to keys with numbers
-                  parts.some((part) => !Number.isNaN(Number(part)))
-                  ? thisKey.length
-                  : -thisKey.length
+                    parts.some((part) => !Number.isNaN(Number(part)))
+                    ? thisKey.length
+                    : -thisKey.length
               },
             ])
             // if first letter is a number, need to prefix for a valid variable name:
@@ -236,10 +236,10 @@ export const generateCode = (
               replacement: phrase
                 ? `\${${variableName}}`
                 : typeof value === 'number'
-                ? `Number(${variableName})`
-                : typeof value === 'boolean'
-                ? variableName
-                : `\`\${${variableName}}\``,
+                  ? `Number(${variableName})`
+                  : typeof value === 'boolean'
+                    ? variableName
+                    : `\`\${${variableName}}\``,
               variableName,
               skipDeduplication,
               originalValue: value,
@@ -258,7 +258,7 @@ export const generateCode = (
             value: unknown
           }[] = skipDeduplication
             ? [{ key, value }]
-            : phrases.get(valueAsString) ?? []
+            : (phrases.get(valueAsString) ?? [])
           if (
             (valueAsString.length < MAX_VALUE_LENGTH &&
               names.length >= minRepeatCount) ||

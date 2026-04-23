@@ -1,0 +1,10 @@
+node_modules/
+build/
+cjs/
+coverage/
+dist/
+dts/
+esm/
+lib/
+mjs/
+umd/

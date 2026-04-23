@@ -776,8 +776,8 @@ export class Laika {
       const type = hasSubscriptionOperation(operation)
         ? 'push'
         : hasMutation
-        ? 'response:mutation'
-        : 'response:query'
+          ? 'response:mutation'
+          : 'response:query'
 
       const {
         clientName: unsafeClientName,
@@ -838,8 +838,8 @@ export class Laika {
     const type = hasSubscriptionOperation(operation)
       ? 'subscription'
       : hasMutation
-      ? 'mutation'
-      : 'query'
+        ? 'mutation'
+        : 'query'
 
     const {
       clientName: unsafeClientName,

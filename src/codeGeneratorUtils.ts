@@ -18,8 +18,8 @@ export const indexOfWord = (
     referencedIndex > 0
       ? input[referencedIndex - 1]!
       : referencedIndex === 0
-      ? _preceedingChar
-      : ' '
+        ? _preceedingChar
+        : ' '
   const matchEndIndex = referencedIndex + searchedWord.length
   const followingChar =
     matchEndIndex < input.length ? input[matchEndIndex] : ' '

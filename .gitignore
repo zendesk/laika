@@ -1,15 +1,4 @@
 .vscode
-.eslintignore
-.eslintrc.js
-.prettierignore
-.editorconfig
-tsconfig.json
-tsconfig.*.json
-babel.config.js
-jest.config.js
-prettier.config.js
-vite.config.ts
-webpack.config.js
 *.tsbuildinfo
 
 /.yarn/*
@@ -32,7 +21,6 @@ logs/
 .eslintcache
 .idea
 .npm
-.vscode
 .yarnclean
 
 # Directories
