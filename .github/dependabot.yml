@@ -5,3 +5,36 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+
+  # Keep npm/Yarn security update commits compatible with commitlint without
+  # enabling routine version update pull requests.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 0
+    groups:
+      npm_and_yarn:
+        applies-to: 'security-updates'
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+
+  - package-ecosystem: 'npm'
+    directory: '/docs'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 0
+    groups:
+      docs_npm_and_yarn:
+        applies-to: 'security-updates'
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
