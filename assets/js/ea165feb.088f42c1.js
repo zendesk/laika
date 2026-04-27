@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunk_zendesk_laika_docs=globalThis.webpackChunk_zendesk_laika_docs||[]).push([[7672],{4450(a){a.exports=JSON.parse('{"metadata":{"permalink":"/laika/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":0,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
