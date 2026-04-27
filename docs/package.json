@@ -14,15 +14,14 @@
     "clear": "docusaurus clear"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.9.2",
-    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@types/marked": "^6.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "docusaurus-plugin-typedoc": "^1.4.2",
@@ -31,6 +30,12 @@
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^6.0.3"
+  },
+  "resolutions": {
+    "serialize-javascript@npm:^6.0.0": "npm:7.0.5",
+    "serialize-javascript@npm:^6.0.1": "npm:7.0.5",
+    "webpackbar@npm:^6.0.1": "npm:7.0.0",
+    "uuid@npm:^8.3.2": "npm:14.0.0"
   },
   "browserslist": {
     "production": [
