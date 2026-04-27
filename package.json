@@ -65,20 +65,20 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
-    "@apollo/client": "^4.1.7",
+    "@apollo/client": "^4.1.9",
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
     "@semantic-release/exec": "^7.1.0",
-    "@swc/core": "^1.15.30",
+    "@swc/core": "^1.15.32",
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.24",
-    "commitlint": "^20.5.0",
+    "commitlint": "^20.5.2",
     "eslint": "^10.2.1",
     "eslint-plugin-import": "^2.32.0",
     "globals": "^17.5.0",
