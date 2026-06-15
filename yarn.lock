@@ -9362,7 +9362,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"test-exclude@npm:^6.0.0":
+"test-exclude@npm:6.0.0":
   version: 6.0.0
   resolution: "test-exclude@npm:6.0.0"
   dependencies:
@@ -9370,6 +9370,17 @@ __metadata:
     glob: "npm:^7.1.4"
     minimatch: "npm:^3.0.4"
   checksum: 10c0/019d33d81adff3f9f1bfcff18125fb2d3c65564f437d9be539270ee74b994986abb8260c7c2ce90e8f30162178b09dbbce33c6389273afac4f36069c48521f57
+  languageName: node
+  linkType: hard
+
+"test-exclude@patch:test-exclude@npm%3A6.0.0#~/.yarn/patches/test-exclude-npm-6.0.0-3fb03d69df.patch":
+  version: 6.0.0
+  resolution: "test-exclude@patch:test-exclude@npm%3A6.0.0#~/.yarn/patches/test-exclude-npm-6.0.0-3fb03d69df.patch::version=6.0.0&hash=820063"
+  dependencies:
+    "@istanbuljs/schema": "npm:^0.1.2"
+    glob: "npm:^7.1.4"
+    minimatch: "npm:^3.0.4"
+  checksum: 10c0/befdddf2d244a1cae417819b04349d3e6324c84e9dcf500b6acb5037d6db133683068af6cb8af0abb3fb8d42a4d4c36a932c5f83cdcad2bd755166871fbf4b58
   languageName: node
   linkType: hard
 

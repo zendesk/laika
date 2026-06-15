@@ -105,7 +105,8 @@
   "resolutions": {
     "glob@npm:^10.5.0": "npm:13.0.6",
     "glob@npm:^7.1.4": "npm:13.0.6",
-    "js-yaml@npm:^3.13.1": "npm:4.2.0"
+    "js-yaml@npm:^3.13.1": "npm:4.2.0",
+    "test-exclude@npm:^6.0.0": "patch:test-exclude@npm%3A6.0.0#~/.yarn/patches/test-exclude-npm-6.0.0-3fb03d69df.patch"
   },
   "publishConfig": {
     "access": "public"

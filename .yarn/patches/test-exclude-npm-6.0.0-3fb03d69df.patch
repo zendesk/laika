@@ -1,0 +1,18 @@
+diff --git a/index.js b/index.js
+index aecb72d02adcc32a77824b4f61428e2a5234124f..7f0dabfc65f3c7dc3872772116ef559f3a00c2af 100644
+--- a/index.js
++++ b/index.js
+@@ -2,7 +2,12 @@
+ 
+ const path = require('path');
+ const { promisify } = require('util');
+-const glob = promisify(require('glob'));
++const globModule = require('glob');
++const glob = typeof globModule === 'function' ?
++    promisify(globModule) :
++    globModule.glob.bind(globModule);
++const globSync = globModule.sync || globModule.globSync;
++glob.sync = globSync.bind(globModule);
+ const minimatch = require('minimatch');
+ const { defaults } = require('@istanbuljs/schema');
+ const isOutsideDir = require('./is-outside-dir');
