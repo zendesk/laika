@@ -14,28 +14,30 @@
     "clear": "docusaurus clear"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.10.0",
-    "@docusaurus/preset-classic": "^3.10.0",
+    "@docusaurus/core": "^3.10.1",
+    "@docusaurus/preset-classic": "^3.10.1",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "docusaurus-plugin-typedoc": "^1.4.2",
     "highlight.js": "^11.11.1",
-    "marked": "^18.0.2",
+    "marked": "^18.0.5",
     "typedoc": "^0.28.19",
-    "typedoc-plugin-markdown": "^4.11.0",
+    "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^6.0.3"
   },
   "resolutions": {
+    "js-yaml@npm:^3.13.1": "npm:4.2.0",
     "serialize-javascript@npm:^6.0.0": "npm:7.0.5",
     "serialize-javascript@npm:^6.0.1": "npm:7.0.5",
     "webpackbar@npm:^6.0.1": "npm:7.0.0",
-    "uuid@npm:^8.3.2": "npm:14.0.0"
+    "uuid@npm:^8.3.2": "npm:14.0.0",
+    "gray-matter@npm:^4.0.3": "patch:gray-matter@npm%3A4.0.3#~/.yarn/patches/gray-matter-npm-4.0.3-852ae4f34c.patch"
   },
   "browserslist": {
     "production": [
