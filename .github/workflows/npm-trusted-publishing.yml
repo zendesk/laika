@@ -5,10 +5,10 @@ on:
 
 jobs:
   bootstrap:
+    # NPM credentials live in the npm-publish environment, not repo secrets.
+    environment: npm-publish
     uses: zendesk/gw/.github/workflows/npm-trusted-publication.yml@main
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      NPM_TOTP_DEVICE: ${{ secrets.NPM_TOTP_DEVICE }}
+    secrets: inherit
     with:
       package-name: '@zendesk/laika'
       package-json-file-path: package.json
