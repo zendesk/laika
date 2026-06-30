@@ -3,15 +3,121 @@ name: npm trusted publishing
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   bootstrap:
     # NPM credentials live in the npm-publish environment, not repo secrets.
+    # Reusable workflow callers cannot set `environment`, so bootstrap steps are inlined here.
+    runs-on: ubuntu-latest
     environment: npm-publish
-    uses: zendesk/gw/.github/workflows/npm-trusted-publication.yml@main
-    secrets: inherit
-    with:
-      package-name: '@zendesk/laika'
-      package-json-file-path: package.json
-      publish-workflow: ci-cd.yml
-      repository: ${{ github.repository }}
-      github-environment: npm-publish
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PACKAGE_NAME: '@zendesk/laika'
+      PACKAGE_JSON_FILE_PATH: package.json
+      PUBLISH_WORKFLOW: ci-cd.yml
+      REPOSITORY: ${{ github.repository }}
+      GITHUB_ENVIRONMENT: npm-publish
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.14.1'
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: |
+          npm install -g npm@11.5.1
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends oathtool jq
+
+      - name: Validate package json file path and name
+        run: |
+          set -euo pipefail
+          [[ "$PACKAGE_JSON_FILE_PATH" != /* ]] || { echo "package-json-file-path must not be an absolute path"; exit 1; }
+          [[ -f "$PACKAGE_JSON_FILE_PATH" ]] || { echo "package-json-file-path does not exist"; exit 1; }
+          [[ "$(node -p "require('./$PACKAGE_JSON_FILE_PATH').name")" == "$PACKAGE_NAME" ]] || { echo "package-name does not match package.json name"; exit 1; }
+
+      - name: Check if package exists on npm
+        id: package-exists
+        run: |
+          set -euo pipefail
+          encoded="${PACKAGE_NAME//\//%2F}"
+          if curl -fsS "https://registry.npmjs.org/${encoded}" >/dev/null; then
+            echo "Package $PACKAGE_NAME exists on npmjs"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Package $PACKAGE_NAME is not currently published on npmjs"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set base version
+        if: steps.package-exists.outputs.exists != 'true'
+        run: |
+          set -euo pipefail
+          cd "$(dirname "$PACKAGE_JSON_FILE_PATH")"
+          npm version 0.0.0 --no-git-tag-version --allow-same-version
+
+      - name: Initial publish with token
+        if: steps.package-exists.outputs.exists != 'true'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOTP_DEVICE: ${{ secrets.NPM_TOTP_DEVICE }}
+        run: |
+          set -euo pipefail
+          otp="$(oathtool --base32 --totp "$NPM_TOTP_DEVICE")"
+          npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          npm publish --prefix "$(dirname "$PACKAGE_JSON_FILE_PATH")" --access public --otp "$otp"
+          echo "Sleeping for 15 seconds for npmjs to reflect the new $PACKAGE_NAME package, so that the trusted publisher can be configured"
+          sleep 15
+
+      - name: Configure trusted publisher
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOTP_DEVICE: ${{ secrets.NPM_TOTP_DEVICE }}
+        run: |
+          set -euo pipefail
+          otp="$(oathtool --base32 --totp "$NPM_TOTP_DEVICE")"
+          url="https://registry.npmjs.org/-/package/${PACKAGE_NAME//\//%2F}/trust"
+          curl_args=(-H "Authorization: Bearer $NPM_TOKEN" -H "npm-otp: $otp")
+
+          trust="$(curl -fsS "${curl_args[@]}" "$url" 2>/dev/null || echo '[]')"
+          plan="$(jq -c \
+            --arg repo "$REPOSITORY" \
+            --arg wf "$PUBLISH_WORKFLOW" \
+            --arg env "$GITHUB_ENVIRONMENT" \
+            --arg pkg "$PACKAGE_NAME" \
+            '
+            def entries: if type == "array" then . elif (type == "object" and . != {}) then [.] else [] end;
+            def matches($e): any($e[]; .type == "github" and .claims.repository == $repo and .claims.workflow_ref.file == $wf and .claims.environment == $env);
+            entries as $e
+            | matches($e) as $matched
+            | {
+                matched: $matched,
+                logs: (
+                  if $matched then
+                    ["Trusted publisher for \($pkg) already matches inputs"]
+                  elif ($e | length) > 0 then
+                    ["Trusted publisher mismatch for \($pkg)"]
+                    + ($e | map("  current: repository=\(.claims.repository) workflow=\(.claims.workflow_ref.file) environment=\(.claims.environment)"))
+                    + ["  expected: repository=\($repo) workflow=\($wf) environment=\($env)"]
+                  else
+                    ["No trusted publisher configured for \($pkg). Configuring now."]
+                  end
+                ),
+                ids: ($e | map(.id // empty)),
+                body: [{type:"github",claims:{repository:$repo,workflow_ref:{file:$wf},environment:$env},permissions:["createPackage"]}]
+              }
+            ' <<<"${trust:-[]}")"
+
+          jq -r '.logs[]' <<<"$plan"
+          jq -e '.matched' <<<"$plan" >/dev/null && exit 0
+
+          while read -r id; do
+            [[ -n "$id" ]] && curl -fsS -X DELETE "${url}/${id}" "${curl_args[@]}"
+          done < <(jq -r '.ids[]' <<<"$plan")
+
+          curl -fsS -X POST "$url" "${curl_args[@]}" -H 'Content-Type: application/json' -d "$(jq -c '.body' <<<"$plan")"
+          echo
+          echo "Trusted publisher for $PACKAGE_NAME configured successfully"
