@@ -5,12 +5,24 @@ on:
 
 jobs:
   bootstrap:
-    # Test-driving gw#19 before it lands on @main. Switch ref to @main after zendesk/gw#19 merges.
-    uses: zendesk/gw/.github/workflows/npm-trusted-publication.yml@fix/npm-trusted-publication-environment-secrets
-    secrets: inherit
-    with:
-      package-name: '@zendesk/laika'
-      package-json-file-path: package.json
-      publish-workflow: ci-cd.yml
-      repository: ${{ github.repository }}
-      github-environment: npm-publish
+    # Test-driving gw#19 via composite action. Switch ref to @main after zendesk/gw#19 merges.
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.14.1'
+          registry-url: https://registry.npmjs.org
+
+      - uses: zendesk/gw/.github/actions/npm-trusted-publication@fix/npm-trusted-publication-environment-secrets
+        with:
+          package-name: '@zendesk/laika'
+          package-json-file-path: package.json
+          publish-workflow: ci-cd.yml
+          repository: ${{ github.repository }}
+          github-environment: npm-publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOTP_DEVICE: ${{ secrets.NPM_TOTP_DEVICE }}
