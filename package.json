@@ -146,9 +146,9 @@
       [
         "@semantic-release/exec",
         {
-          "verifyConditionsCmd": "node ./scripts/npm-release-with-totp.mjs verify",
-          "publishCmd": "node ./scripts/npm-release-with-totp.mjs publish \"${nextRelease.version}\" \"${branch.name}\"",
-          "addChannelCmd": "node ./scripts/npm-release-with-totp.mjs add-channel \"${nextRelease.version}\" \"${branch.name}\""
+          "verifyConditionsCmd": "node ./scripts/npm-release-with-oidc.mjs verify",
+          "publishCmd": "node ./scripts/npm-release-with-oidc.mjs publish \"${nextRelease.version}\" \"${branch.name}\"",
+          "addChannelCmd": "node ./scripts/npm-release-with-oidc.mjs add-channel \"${nextRelease.version}\" \"${branch.name}\""
         }
       ],
       "@semantic-release/github"

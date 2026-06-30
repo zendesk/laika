@@ -157,6 +157,11 @@ jobs:
       - docs
     runs-on: ubuntu-latest
     environment: npm-publish
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
@@ -175,14 +180,10 @@ jobs:
           restore-keys: |
             yarn-cache-folder-os-${{ runner.os }}-node-${{ env.NODE_VERSION }}-
             yarn-cache-folder-os-${{ runner.os }}-
-      - name: Install oathtool
-        run: sudo apt-get install --fix-broken --yes oathtool
       - name: Build and release
         run: |
           yarn install --immutable
           yarn build
           yarn release
         env:
-          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-          NPM_TOTP_DEVICE: ${{secrets.NPM_TOTP_DEVICE}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
