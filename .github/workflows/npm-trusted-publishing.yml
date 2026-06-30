@@ -5,9 +5,8 @@ on:
 
 jobs:
   bootstrap:
-    # NPM credentials live in the npm-publish environment, not repo secrets.
-    environment: npm-publish
-    uses: zendesk/gw/.github/workflows/npm-trusted-publication.yml@main
+    # Test-driving gw#19 before it lands on @main. Switch ref to @main after zendesk/gw#19 merges.
+    uses: zendesk/gw/.github/workflows/npm-trusted-publication.yml@fix/npm-trusted-publication-environment-secrets
     secrets: inherit
     with:
       package-name: '@zendesk/laika'
