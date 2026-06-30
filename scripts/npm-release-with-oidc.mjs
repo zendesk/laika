@@ -118,10 +118,14 @@ const exchangeNpmToken = async () => {
   const responseBody = await readJsonResponse(response)
 
   if (!response.ok) {
+    const npmMessage = responseBody.message ?? response.statusText
+    const bootstrapHint =
+      response.status === 404
+        ? ' Run the "npm trusted publishing" workflow to register ci-cd.yml as the trusted publisher for this package.'
+        : ''
+
     throw new Error(
-      `npm OIDC token exchange failed with ${response.status}: ${
-        responseBody.message ?? response.statusText
-      }`,
+      `npm OIDC token exchange failed with ${response.status}: ${npmMessage}.${bootstrapHint}`,
     )
   }
 
