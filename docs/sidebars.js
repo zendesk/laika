@@ -17,6 +17,7 @@ module.exports = {
         'usage-in-jest-vitest',
         'usage-in-cypress',
         'advanced-usage',
+        'transport-simulator',
         'resetting-between-tests',
         'logging-and-recording',
         'pitfalls',
@@ -105,6 +106,40 @@ module.exports = {
               label: 'Functions',
               items: [
                 'api/createLazyLoadableLink/functions/createLazyLoadableLink',
+              ],
+            },
+          ],
+        },
+        {
+          type: 'category',
+          label: 'transportSimulator',
+          link: {
+            type: 'doc',
+            id: 'api/transportSimulator/index',
+          },
+          items: [
+            {
+              type: 'category',
+              label: 'Functions',
+              items: [
+                'api/transportSimulator/functions/createTransportSimulator',
+              ],
+            },
+            {
+              type: 'category',
+              label: 'Type aliases',
+              items: [
+                'api/transportSimulator/type-aliases/ChaosTransportSimulatorOptions',
+                'api/transportSimulator/type-aliases/CreateTransportSimulatorOptions',
+                'api/transportSimulator/type-aliases/TargetedTransportSimulatorOptions',
+                'api/transportSimulator/type-aliases/TransportFailure',
+                'api/transportSimulator/type-aliases/TransportLatency',
+                'api/transportSimulator/type-aliases/TransportOperationLogEntry',
+                'api/transportSimulator/type-aliases/TransportOperationType',
+                'api/transportSimulator/type-aliases/TransportSimulator',
+                'api/transportSimulator/type-aliases/TransportSimulatorChange',
+                'api/transportSimulator/type-aliases/TransportSimulatorController',
+                'api/transportSimulator/type-aliases/TransportSimulatorOptions',
               ],
             },
           ],

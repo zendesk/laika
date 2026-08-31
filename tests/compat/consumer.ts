@@ -8,6 +8,7 @@ import {
 } from '@apollo/client/core'
 import {
   createLazyLoadableLink,
+  createTransportSimulator,
   type CreateLaikaLinkOptions,
   type FetchResultSubscriptionObserver,
   type Matcher,
@@ -44,6 +45,18 @@ const lazyLink = createLazyLoadableLink(
   Promise.resolve(new ApolloLink((operation) => forward(operation))),
 )
 
+const transportSimulator = createTransportSimulator({
+  initial: {
+    mode: 'targeted',
+    latency: { operations: ['helloQuery'], latencyMs: 25 },
+  },
+})
+transportSimulator.controller.set({
+  mode: 'chaos',
+  latency: { minMs: 10, maxMs: 10 },
+  errorProbability: 0,
+})
+
 const laika = new Laika({ referenceName: 'compatLaika' })
 const intercept = laika.intercept(matcher)
 
@@ -55,6 +68,7 @@ intercept
   })
 
 const link = ApolloLink.from([
+  transportSimulator.link,
   laika.createLink((operation, next) => {
     operation.setContext({ options })
     next(operation)
@@ -138,4 +152,4 @@ laika.intercept({ operation: typedQuery }).mockResult({
   },
 })
 
-void [link, observer, options, query, typedQuery]
+void [link, observer, options, query, typedQuery, transportSimulator]

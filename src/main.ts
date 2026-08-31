@@ -6,7 +6,21 @@
 
 export { createLazyLoadableLaikaLink } from './createLazyLoadableLaikaLink'
 export { createLazyLoadableLink } from './createLazyLoadableLink'
+export { createTransportSimulator } from './transportSimulator'
 export type { InterceptApi, Laika, LogApi } from './laika'
+export type {
+  ChaosTransportSimulatorOptions,
+  CreateTransportSimulatorOptions,
+  TargetedTransportSimulatorOptions,
+  TransportFailure,
+  TransportLatency,
+  TransportOperationLogEntry,
+  TransportOperationType,
+  TransportSimulator,
+  TransportSimulatorChange,
+  TransportSimulatorController,
+  TransportSimulatorOptions,
+} from './transportSimulator'
 export type {
   Behavior,
   CreateLaikaLinkOptions,

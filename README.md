@@ -31,6 +31,7 @@ Read the Medium article about Laika: [Mock GraphQL Subscriptions with Laika — 
 - [Usage in Jest / Vitest](https://zendesk.github.io/laika/docs/usage-in-jest-vitest)
 - [Usage in Cypress](https://zendesk.github.io/laika/docs/usage-in-cypress)
 - [Advanced usage](https://zendesk.github.io/laika/docs/advanced-usage)
+- [Transport simulator](https://zendesk.github.io/laika/docs/transport-simulator)
 - [Resetting Between Tests](https://zendesk.github.io/laika/docs/resetting-between-tests)
 - [Logging and recording](https://zendesk.github.io/laika/docs/logging-and-recording)
 - [Pitfalls](https://zendesk.github.io/laika/docs/pitfalls)
