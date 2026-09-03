@@ -7,7 +7,6 @@ module.exports = {
     path.resolve(__dirname, '../src/createGlobalLaikaLink.ts'),
     path.resolve(__dirname, '../src/createLazyLoadableLaikaLink.ts'),
     path.resolve(__dirname, '../src/createLazyLoadableLink.ts'),
-    path.resolve(__dirname, '../src/transportSimulator.ts'),
     path.resolve(__dirname, '../src/typedefs.ts'),
   ],
   tsconfig: path.join(__dirname, 'tsconfig.typedoc.json'),

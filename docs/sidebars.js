@@ -30,6 +30,7 @@ module.exports = {
         'api/Laika/classes/Laika',
         'api/Laika/classes/InterceptApi',
         'api/Laika/classes/LogApi',
+        'api/Laika/classes/TransportApi',
       ],
     },
     {
@@ -112,40 +113,6 @@ module.exports = {
         },
         {
           type: 'category',
-          label: 'transportSimulator',
-          link: {
-            type: 'doc',
-            id: 'api/transportSimulator/index',
-          },
-          items: [
-            {
-              type: 'category',
-              label: 'Functions',
-              items: [
-                'api/transportSimulator/functions/createTransportSimulator',
-              ],
-            },
-            {
-              type: 'category',
-              label: 'Type aliases',
-              items: [
-                'api/transportSimulator/type-aliases/ChaosTransportSimulatorOptions',
-                'api/transportSimulator/type-aliases/CreateTransportSimulatorOptions',
-                'api/transportSimulator/type-aliases/TargetedTransportSimulatorOptions',
-                'api/transportSimulator/type-aliases/TransportFailure',
-                'api/transportSimulator/type-aliases/TransportLatency',
-                'api/transportSimulator/type-aliases/TransportOperationLogEntry',
-                'api/transportSimulator/type-aliases/TransportOperationType',
-                'api/transportSimulator/type-aliases/TransportSimulator',
-                'api/transportSimulator/type-aliases/TransportSimulatorChange',
-                'api/transportSimulator/type-aliases/TransportSimulatorController',
-                'api/transportSimulator/type-aliases/TransportSimulatorOptions',
-              ],
-            },
-          ],
-        },
-        {
-          type: 'category',
           label: 'Laika',
           link: {
             type: 'doc',
@@ -159,6 +126,7 @@ module.exports = {
                 'api/Laika/classes/InterceptApi',
                 'api/Laika/classes/Laika',
                 'api/Laika/classes/LogApi',
+                'api/Laika/classes/TransportApi',
               ],
             },
           ],
@@ -190,6 +158,7 @@ module.exports = {
               type: 'category',
               label: 'Type aliases',
               items: [
+                'api/typedefs/type-aliases/ChaosTransportSimulationOptions',
                 'api/typedefs/type-aliases/EventFilterFn',
                 'api/typedefs/type-aliases/InterceptorFn',
                 'api/typedefs/type-aliases/ManInTheMiddleFn',
@@ -206,6 +175,14 @@ module.exports = {
                 'api/typedefs/type-aliases/Replacements',
                 'api/typedefs/type-aliases/ResultFn',
                 'api/typedefs/type-aliases/ResultOrFn',
+                'api/typedefs/type-aliases/TargetedTransportRule',
+                'api/typedefs/type-aliases/TargetedTransportSimulationOptions',
+                'api/typedefs/type-aliases/TransportDecision',
+                'api/typedefs/type-aliases/TransportFailure',
+                'api/typedefs/type-aliases/TransportOperation',
+                'api/typedefs/type-aliases/TransportOperationType',
+                'api/typedefs/type-aliases/TransportSimulationOptions',
+                'api/typedefs/type-aliases/TransportSnapshot',
               ],
             },
           ],
