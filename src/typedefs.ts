@@ -103,6 +103,75 @@ export interface MatcherObject {
  */
 export type Matcher = MatcherFn | MatcherObject
 
+/** A simulated failure returned instead of calling the following transport link. */
+export type TransportFailure = {
+  kind: 'network' | 'graphql'
+  message?: string
+}
+
+/** A targeted transport effect. The first matching rule is applied. */
+export type TargetedTransportRule = {
+  matcher: Matcher
+  latencyMs?: number
+  failure?: TransportFailure
+}
+
+/** Explicit simulation rules for selected passthrough operations. */
+export type TargetedTransportSimulationOptions = {
+  mode: 'targeted'
+  rules: readonly TargetedTransportRule[]
+}
+
+/** Randomized simulation rules for matching passthrough operations. */
+export type ChaosTransportSimulationOptions = {
+  mode: 'chaos'
+  /** Leave undefined to include every operation. */
+  matcher?: Matcher
+  /** Inclusive when both bounds are whole milliseconds. */
+  latency: { minMs: number; maxMs: number }
+  /** Percentage from 0 through 100. */
+  errorProbability: number
+  /** Off by default because subscriptions are long-lived. */
+  includeSubscriptions?: boolean
+}
+
+/** Exactly one enabled transport simulation mode. */
+export type TransportSimulationOptions =
+  | TargetedTransportSimulationOptions
+  | ChaosTransportSimulationOptions
+
+export type TransportOperationType =
+  | 'query'
+  | 'mutation'
+  | 'subscription'
+  | 'unknown'
+
+/** An operation observed by a Laika instance. */
+export type TransportOperation = {
+  operationName?: string
+  operationType: TransportOperationType
+  clientName?: string
+  feature?: string
+}
+
+/** A bounded diagnostic record for a passthrough operation. */
+export type TransportDecision = {
+  id: number
+  timestamp: number
+  mode: TransportSimulationOptions['mode']
+  operation: TransportOperation
+  latencyMs: number
+  chaosSkipped: boolean
+  injectedFailure?: TransportFailure
+}
+
+/** The current configuration and diagnostics for a Laika instance. */
+export type TransportSnapshot = {
+  configuration?: TransportSimulationOptions
+  operations: readonly TransportOperation[]
+  decisions: readonly TransportDecision[]
+}
+
 export type RecordingElement = RecordingMarker | RecordingPoint
 export type RecordingElementWithFixtureMeta =
   | RecordingMarker
