@@ -120,6 +120,8 @@ export function createTransportSimulator({
     )
   }
 
+  validateOptions(initial, 'initial')
+
   const simulatorState = createController(initial, maxLogEntries)
   const link = new ApolloLink((operation, forward) => {
     if (!forward) {
@@ -223,7 +225,15 @@ function createController(
   let nextLogId = 1
 
   const notify = (change: TransportSimulatorChange) => {
-    listeners.forEach((listener) => listener(change))
+    // Consumer-owned diagnostics must never affect the transport request.
+    listeners.forEach((listener) => {
+      try {
+        listener(change)
+      } catch {
+        // Ignore listener failures so a broken DevTools panel cannot break an
+        // otherwise valid Apollo operation.
+      }
+    })
   }
 
   const recordOperation = (operationName: string) => {
@@ -245,6 +255,7 @@ function createController(
     controller: {
       get: () => cloneOptions(options),
       set: (next) => {
+        validateOptions(next, 'options')
         options = cloneOptions(next)
         notify({ kind: 'options' })
       },
@@ -319,6 +330,98 @@ function matchesOperation(
   operationName: string,
 ): boolean {
   return operations !== undefined && operations.includes(operationName)
+}
+
+function validateOptions(
+  options: TransportSimulatorOptions,
+  label: string,
+): void {
+  if (options === null || typeof options !== 'object') {
+    throw new Error(
+      `Transport simulator ${label}.mode must be 'targeted' or 'chaos'`,
+    )
+  }
+
+  if (options.mode === 'targeted') {
+    if (options.latency !== undefined) {
+      validateOperationNames(
+        options.latency.operations,
+        `${label}.latency.operations`,
+      )
+      validateNonNegativeFinite(
+        options.latency.latencyMs,
+        `${label}.latency.latencyMs`,
+      )
+    }
+    if (options.fail !== undefined) {
+      validateOperationNames(
+        options.fail.operations,
+        `${label}.fail.operations`,
+      )
+      if (options.fail.kind !== 'network' && options.fail.kind !== 'graphql') {
+        throw new Error(
+          `Transport simulator ${label}.fail.kind must be 'network' or 'graphql'`,
+        )
+      }
+      if (
+        options.fail.message !== undefined &&
+        typeof options.fail.message !== 'string'
+      ) {
+        throw new Error(
+          `Transport simulator ${label}.fail.message must be a string when provided`,
+        )
+      }
+    }
+    return
+  }
+
+  if (options.mode !== 'chaos') {
+    throw new Error(
+      `Transport simulator ${label}.mode must be 'targeted' or 'chaos'`,
+    )
+  }
+
+  validateNonNegativeFinite(options.latency.minMs, `${label}.latency.minMs`)
+  validateNonNegativeFinite(options.latency.maxMs, `${label}.latency.maxMs`)
+  if (options.latency.minMs > options.latency.maxMs) {
+    throw new Error(
+      `Transport simulator ${label}.latency.minMs must be less than or equal to ${label}.latency.maxMs`,
+    )
+  }
+  if (
+    !Number.isFinite(options.errorProbability) ||
+    options.errorProbability < 0 ||
+    options.errorProbability > 100
+  ) {
+    throw new Error(
+      `Transport simulator ${label}.errorProbability must be between 0 and 100`,
+    )
+  }
+  if (
+    options.includeSubscriptions !== undefined &&
+    typeof options.includeSubscriptions !== 'boolean'
+  ) {
+    throw new Error(
+      `Transport simulator ${label}.includeSubscriptions must be a boolean when provided`,
+    )
+  }
+}
+
+function validateOperationNames(value: unknown, label: string): void {
+  if (
+    !Array.isArray(value) ||
+    value.some((operationName) => typeof operationName !== 'string')
+  ) {
+    throw new Error(`Transport simulator ${label} must be an array of strings`)
+  }
+}
+
+function validateNonNegativeFinite(value: unknown, label: string): void {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new Error(
+      `Transport simulator ${label} must be a finite number greater than or equal to 0`,
+    )
+  }
 }
 
 function normalizeLatency(value: number | undefined): number {

@@ -48,6 +48,68 @@ const terminalLink = (request: jest.Mock) =>
   })
 
 describe('createTransportSimulator', () => {
+  it.each([
+    [
+      'negative targeted latency',
+      { mode: 'targeted', latency: { operations: [], latencyMs: -1 } },
+      'initial.latency.latencyMs',
+    ],
+    [
+      'chaos min greater than max',
+      { mode: 'chaos', latency: { minMs: 20, maxMs: 10 }, errorProbability: 0 },
+      'initial.latency.minMs must be less than or equal to initial.latency.maxMs',
+    ],
+    [
+      'negative chaos minimum',
+      { mode: 'chaos', latency: { minMs: -1, maxMs: 10 }, errorProbability: 0 },
+      'initial.latency.minMs',
+    ],
+    [
+      'chaos probability above 100',
+      {
+        mode: 'chaos',
+        latency: { minMs: 0, maxMs: 10 },
+        errorProbability: 101,
+      },
+      'initial.errorProbability',
+    ],
+  ])(
+    'rejects invalid %s with a meaningful error',
+    (_name, options, message) => {
+      expect(() =>
+        createTransportSimulator({ initial: options as never }),
+      ).toThrow(message)
+    },
+  )
+
+  it('validates options when changing modes at runtime', () => {
+    const simulator = createTransportSimulator()
+
+    expect(() =>
+      simulator.controller.set({
+        mode: 'chaos',
+        latency: { minMs: 10, maxMs: 0 },
+        errorProbability: 50,
+      }),
+    ).toThrow(
+      'options.latency.minMs must be less than or equal to options.latency.maxMs',
+    )
+
+    expect(simulator.controller.get()).toEqual({ mode: 'targeted' })
+  })
+
+  it('does not let a failing diagnostic listener fail an operation', async () => {
+    const simulator = createTransportSimulator()
+    simulator.controller.subscribe(() => {
+      throw new Error('broken DevTools panel')
+    })
+    const request = jest.fn()
+    const link = ApolloLink.from([simulator.link, terminalLink(request)])
+
+    await expect(waitFor(executeLink(link, { query }))).resolves.toHaveLength(1)
+    expect(request).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps controller state isolated, defensive, and observable', async () => {
     const simulator = createTransportSimulator({ maxLogEntries: 1 })
     const changes: string[] = []
