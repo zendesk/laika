@@ -28,6 +28,14 @@ const subscription = gql`
   }
 `
 
+const anonymousSubscription = gql`
+  subscription {
+    profileUpdates {
+      id
+    }
+  }
+`
+
 const response = { data: { profile: { id: '1' } } }
 
 const createDeferred = () => {
@@ -286,6 +294,72 @@ describe('createTransportSimulator', () => {
       },
       {
         operationName: 'ProfileUpdates',
+        operationType: 'subscription',
+        latencyMs: 0,
+        chaosSkipped: true,
+      },
+    ])
+  })
+
+  it('keeps fractional chaos delays within the configured interval', async () => {
+    const scheduler = {
+      delay: jest.fn((delayMs: number) => {
+        void delayMs
+        return Promise.resolve()
+      }),
+    }
+    const simulator = createTransportSimulator({
+      initial: {
+        mode: 'chaos',
+        latency: { minMs: 0.1, maxMs: 0.2 },
+        errorProbability: 0,
+      },
+      scheduler,
+      random: () => 0.99,
+    })
+    const request = jest.fn()
+    const link = ApolloLink.from([simulator.link, terminalLink(request)])
+
+    await waitFor(executeLink(link, { query }))
+
+    expect(scheduler.delay).toHaveBeenCalledTimes(1)
+    const firstDelayCall = scheduler.delay.mock.calls[0]
+    if (!firstDelayCall) throw new Error('Expected a scheduled delay')
+    const [latencyMs] = firstDelayCall
+    expect(latencyMs).toBeGreaterThanOrEqual(0.1)
+    expect(latencyMs).toBeLessThanOrEqual(0.2)
+  })
+
+  it('skips anonymous subscriptions in Apollo Client 3 chaos mode', async () => {
+    const scheduler = { delay: jest.fn(() => Promise.resolve()) }
+    const simulator = createTransportSimulator({
+      initial: {
+        mode: 'chaos',
+        latency: { minMs: 100, maxMs: 200 },
+        errorProbability: 100,
+      },
+      scheduler,
+    })
+    const request = jest.fn()
+    const result = simulator.link.request(
+      { operationName: '', query: anonymousSubscription } as never,
+      (operation) => {
+        request(operation)
+        return new Observable((observer) => {
+          observer.complete?.()
+        })
+      },
+    )
+
+    if (!result)
+      throw new Error('Expected the simulator to return an observable')
+    await waitFor(result)
+
+    expect(scheduler.delay).not.toHaveBeenCalled()
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(simulator.controller.getLog()).toMatchObject([
+      {
+        operationName: '',
         operationType: 'subscription',
         latencyMs: 0,
         chaosSkipped: true,

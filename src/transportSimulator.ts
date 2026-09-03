@@ -308,7 +308,11 @@ function decideEffect(
 
   const minMs = normalizeLatency(options.latency.minMs)
   const maxMs = Math.max(minMs, normalizeLatency(options.latency.maxMs))
-  const latencyMs = minMs + Math.floor(randomUnit(random) * (maxMs - minMs + 1))
+  const latencyRangeMs = maxMs - minMs
+  const latencyMs =
+    Number.isInteger(minMs) && Number.isInteger(maxMs)
+      ? minMs + Math.floor(randomUnit(random) * (latencyRangeMs + 1))
+      : minMs + randomUnit(random) * latencyRangeMs
   const errorProbability = Math.min(100, Math.max(0, options.errorProbability))
   const failure: Pick<TransportFailure, 'kind' | 'message'> | undefined =
     randomUnit(random) * 100 >= errorProbability
@@ -320,8 +324,8 @@ function decideEffect(
 
 function getOperationType(operation: Operation): TransportOperationType {
   return (
-    getOperationAST(operation.query, operation.operationName)?.operation ??
-    'unknown'
+    getOperationAST(operation.query, operation.operationName || undefined)
+      ?.operation ?? 'unknown'
   )
 }
 
