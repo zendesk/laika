@@ -39,6 +39,7 @@ import {
 } from './hasOperation'
 import { getEmitValueFn, getMatcherFn } from './linkUtils'
 import { mapObservable } from './observableUtils'
+import { TransportSimulationState } from './transportSimulation'
 import type {
   Behavior,
   EventFilterFn,
@@ -61,6 +62,8 @@ import type {
   ResultOrFn,
   SubscribeMeta,
   Subscription,
+  TransportSimulationOptions,
+  TransportSnapshot,
   Variables,
 } from './typedefs'
 
@@ -147,12 +150,25 @@ const emitMockedResult = ({
 export class Laika {
   private readonly referenceName: string
 
+  private readonly transportState = new TransportSimulationState()
+
+  /**
+   * Controls simulated latency and failures for passthrough operations handled
+   * by this Laika instance.
+   */
+  readonly transport: TransportApi
+
   constructor({
     referenceName = 'laika',
   }: {
     referenceName?: string
   } = {}) {
     this.referenceName = referenceName
+    this.transport = {
+      set: (configuration) => this.transportState.set(configuration),
+      snapshot: () => this.transportState.snapshot(),
+      subscribe: (listener) => this.transportState.subscribe(listener),
+    }
   }
 
   /**
@@ -633,7 +649,10 @@ export class Laika {
         throw new Error('LaikaLink cannot be used as a terminating link!')
       }
       onRequest?.(operation, forward)
-      return this.interceptor(operation, forward)
+      this.transportState.observe(operation)
+      return this.interceptor(operation, (nextOperation) =>
+        this.transportState.forward(nextOperation, forward),
+      )
     })
   }
 
@@ -943,6 +962,28 @@ export declare abstract class LogApi {
     eventFilter?: EventFilterFn,
     options?: GenerateCodeOptions,
   ): string
+}
+
+/**
+ * Controls transport simulation for a {@link Laika | `Laika`} instance.
+ * Simulation applies only when Laika passes an operation to a following link;
+ * mocked responses are not delayed or failed as transport requests.
+ */
+export declare abstract class TransportApi {
+  /** @ignore */
+  constructor()
+  /**
+   * Enables a configuration for future passthrough operations. Pass `undefined`
+   * to disable simulation without clearing its bounded diagnostics.
+   */
+  set(configuration: TransportSimulationOptions | undefined): void
+  /** Returns the current configuration plus observed operations and decisions. */
+  snapshot(): TransportSnapshot
+  /**
+   * Subscribes to configuration and diagnostic changes. Read `snapshot()` from
+   * the listener; listener failures never affect an Apollo operation.
+   */
+  subscribe(listener: () => void): () => void
 }
 
 /**
