@@ -24,3 +24,4 @@ yarn-error.log*
 
 !babel.config.js
 .yarn/cache
+.yarn/install-state.gz

@@ -13,6 +13,7 @@ import {
   type Matcher,
   type NextLink,
   type ResultFn,
+  type TransportSimulationOptions,
 } from '@zendesk/laika'
 import { Laika } from '@zendesk/laika/esm/laika'
 
@@ -44,7 +45,14 @@ const lazyLink = createLazyLoadableLink(
   Promise.resolve(new ApolloLink((operation) => forward(operation))),
 )
 
+const transportSimulation: TransportSimulationOptions = {
+  mode: 'chaos',
+  latency: { minMs: 10, maxMs: 10 },
+  errorProbability: 0,
+}
+
 const laika = new Laika({ referenceName: 'compatLaika' })
+laika.transport.set(transportSimulation)
 const intercept = laika.intercept(matcher)
 
 intercept
@@ -138,4 +146,4 @@ laika.intercept({ operation: typedQuery }).mockResult({
   },
 })
 
-void [link, observer, options, query, typedQuery]
+void [link, observer, options, query, typedQuery, transportSimulation]

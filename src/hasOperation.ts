@@ -1,5 +1,5 @@
 import type { DefinitionNode, DocumentNode, OperationTypeNode } from 'graphql'
-import { print } from 'graphql'
+import { getOperationAST, print } from 'graphql'
 import type { Operation } from '@apollo/client/core'
 
 const checkOperationType = (
@@ -22,6 +22,12 @@ export const hasMutationOperation = (
 export const hasQueryOperation = (
   /** @type {Operation} */ { query }: Operation,
 ) => checkOperationType(query.definitions, 'query' as OperationTypeNode)
+
+export const getOperationType = ({
+  query,
+  operationName,
+}: Operation): OperationTypeNode | 'unknown' =>
+  getOperationAST(query, operationName || undefined)?.operation ?? 'unknown'
 
 export const getOperationNameFromDocument = (document: DocumentNode) =>
   document.definitions.find(
