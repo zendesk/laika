@@ -32,7 +32,9 @@
     "typescript": "^6.0.3"
   },
   "resolutions": {
-    "js-yaml@npm:^3.13.1": "npm:4.3.0",
+    "js-yaml@npm:^3.13.1": "npm:4.3.2",
+    "js-yaml@npm:^4.1.0": "npm:4.3.2",
+    "qs@npm:~6.15.1": "npm:6.16.0",
     "serialize-javascript@npm:^6.0.0": "npm:7.0.5",
     "serialize-javascript@npm:^6.0.1": "npm:7.0.5",
     "webpackbar@npm:^6.0.1": "npm:7.0.0",
