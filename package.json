@@ -20,7 +20,7 @@
     "url": "https://github.com/zendesk/laika.git"
   },
   "engines": {
-    "node": "24.x"
+    "node": ">=24"
   },
   "license": "Apache-2.0",
   "author": "Zendesk <pingu-npm@zendesk.com>",
