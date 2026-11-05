@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     # runs-on: [self-hosted, zendesk-stable]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -56,7 +56,7 @@ jobs:
           - 24
           - 26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
@@ -90,7 +90,7 @@ jobs:
           - 24
           - 26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: checks
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -174,7 +174,7 @@ jobs:
     # runs-on: [self-hosted, zendesk-stable]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
